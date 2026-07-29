@@ -295,7 +295,7 @@
     showToast("Зірвалась 😢"); bobber.style.display="none";
   }
 
-  const START=30, WIN=100, TICK=80, PULL=9;
+  const START=35, WIN=100, TICK=80, PULL=11, LAND_LOCK=850;
   function startFight(){
     clearTimeout(missTimer);
     state="fighting"; current=pick(); progress=START;
@@ -330,6 +330,8 @@
   function land(){
     clearInterval(fightTimer); fight.style.display="none";
     const f=current; count++; score+=f.p;
+    // одразу глушимо кнопку, щоб зайві тапи від мешингу не проскочили улов
+    state="landed"; btn.disabled=true; btn.className="btn";
     catchEl.textContent=f.e; catchEl.classList.remove("show"); void catchEl.offsetWidth; catchEl.classList.add("show");
     catchName.textContent = f.n + " • +" + f.p + " оч.";
     logItems.unshift(f.e+" "+f.n+" (+"+f.p+")"); if(logItems.length>25) logItems.pop();
@@ -339,9 +341,17 @@
     // події
     const isTCK = (count===3 || count===33 || count===66);
     const isAd  = (count%10===0);
-    if(isTCK){ btn.disabled=true; statusEl.textContent="Ой-ой… хтось під'їхав 👀"; setTimeout(showTCK,1200); }
-    else if(isAd){ btn.disabled=true; statusEl.textContent="Рекламна пауза наближається…"; setTimeout(showAd,1200); }
-    else { readyToCast("Спіймав: "+f.n+"! Закидай ще 🎣"); }
+    if(isTCK){ statusEl.textContent="Спіймав: "+f.n+"! Ой-ой… хтось під'їхав 👀"; setTimeout(showTCK,1300); }
+    else if(isAd){ statusEl.textContent="Спіймав: "+f.n+"! Рекламна пауза… ⏸"; setTimeout(showAd,1300); }
+    else {
+      statusEl.textContent="Спіймав: "+f.n+"! 🎣";
+      // коротка пауза-локаут: показуємо улов, ігноруємо зайві тапи, потім даємо закинути
+      setTimeout(()=>{
+        if(state!=="landed") return;
+        state="idle"; btn.disabled=false; btn.textContent="Закинути ще 🎣";
+        statusEl.textContent="Гарний улов! Закидай ще 🎣";
+      }, LAND_LOCK);
+    }
   }
 
   // ---------- ТЦК ----------
