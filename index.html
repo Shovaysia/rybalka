@@ -5,97 +5,113 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>🎣 Рибалка</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; overflow:hidden; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif; }
   body {
-    background: linear-gradient(#8fd3ff 0%, #bfe8ff 38%, #4aa3d9 38%, #1c6fb0 100%);
-    display: flex; flex-direction: column; align-items: center;
-    user-select: none; touch-action: manipulation; position: relative;
+    background: linear-gradient(#8fd3ff 0%, #bfe8ff 36%, #4aa3d9 36%, #1c6fb0 100%);
+    display:flex; flex-direction:column; align-items:center;
+    user-select:none; touch-action:manipulation; position:relative;
   }
+  .sun { position:absolute; top:5%; right:11%; width:58px; height:58px; border-radius:50%;
+         background:radial-gradient(#fff6c0,#ffd84a 60%,#ffca1a); box-shadow:0 0 38px #ffe57a; }
+  .cloud { position:absolute; background:#fff; border-radius:50px; opacity:.9; box-shadow:0 8px 20px rgba(0,0,0,.05); }
+  .cloud::before,.cloud::after { content:""; position:absolute; background:#fff; border-radius:50%; }
+  .c1 { width:88px; height:24px; top:11%; left:9%; animation:drift 40s linear infinite; }
+  .c1::before { width:38px; height:38px; top:-17px; left:12px; }
+  .c1::after { width:28px; height:28px; top:-11px; left:44px; }
+  .c2 { width:66px; height:20px; top:20%; left:56%; animation:drift 55s linear infinite; }
+  .c2::before { width:30px; height:30px; top:-13px; left:9px; }
+  .c2::after { width:22px; height:22px; top:-8px; left:36px; }
+  @keyframes drift { from{transform:translateX(-12vw);} to{transform:translateX(112vw);} }
+  .wave { position:absolute; left:0; width:100%; top:36%; height:8px;
+          background:repeating-linear-gradient(90deg,transparent 0 14px,rgba(255,255,255,.35) 14px 28px);
+          animation:waves 3s linear infinite; }
+  @keyframes waves { from{background-position-x:0;} to{background-position-x:28px;} }
 
-  /* Сонце */
-  .sun { position: absolute; top: 6%; right: 12%; width: 64px; height: 64px; border-radius: 50%;
-         background: radial-gradient(#fff6c0, #ffd84a 60%, #ffca1a); box-shadow: 0 0 40px #ffe57a; }
+  .title { margin-top:12px; font-size:24px; font-weight:800; color:#0b3d63; text-shadow:0 2px 0 rgba(255,255,255,.5); z-index:5; }
+  .subtitle { color:#0b3d63; opacity:.75; font-size:12px; margin-top:1px; z-index:5; }
 
-  /* Хмаринки */
-  .cloud { position: absolute; background: #fff; border-radius: 50px; opacity: .9;
-           box-shadow: 0 8px 20px rgba(0,0,0,.05); }
-  .cloud::before, .cloud::after { content:""; position:absolute; background:#fff; border-radius:50%; }
-  .c1 { width: 90px; height: 26px; top: 12%; left: 10%; animation: drift 40s linear infinite; }
-  .c1::before { width: 40px; height: 40px; top: -18px; left: 12px; }
-  .c1::after  { width: 30px; height: 30px; top: -12px; left: 46px; }
-  .c2 { width: 70px; height: 22px; top: 22%; left: 55%; animation: drift 55s linear infinite; }
-  .c2::before { width: 32px; height: 32px; top: -14px; left: 10px; }
-  .c2::after  { width: 24px; height: 24px; top: -8px; left: 38px; }
-  @keyframes drift { from { transform: translateX(-10vw); } to { transform: translateX(110vw); } }
+  .hud { display:flex; gap:7px; margin-top:9px; z-index:5; flex-wrap:wrap; justify-content:center; padding:0 8px; }
+  .chip { background:rgba(255,255,255,.88); border-radius:999px; padding:5px 12px; font-weight:700; color:#0b3d63;
+          font-size:13px; box-shadow:0 3px 8px rgba(0,0,0,.1); }
+  .chip.debt { background:rgba(220,38,38,.92); color:#fff; }
+  .chip.mute { cursor:pointer; }
 
-  /* Хвильки на воді */
-  .wave { position:absolute; left:0; width:100%; top:38%; height:8px;
-          background: repeating-linear-gradient(90deg, transparent 0 14px, rgba(255,255,255,.35) 14px 28px);
-          animation: waves 3s linear infinite; }
-  @keyframes waves { from { background-position-x: 0; } to { background-position-x: 28px; } }
+  .bobber { position:absolute; top:32.5%; left:50%; transform:translateX(-50%); width:20px; height:20px; z-index:4; transition:top .25s; }
+  .bobber .ball { width:20px; height:20px; border-radius:50%;
+          background:radial-gradient(circle at 35% 30%,#ff8a8a,#e02424 65%); border:2px solid #fff;
+          box-shadow:0 3px 6px rgba(0,0,0,.25); position:relative; }
+  .bobber .ball::after { content:""; position:absolute; left:0; right:0; top:50%; height:5px; background:#fff; }
+  .bobber.idle { animation:floaty 2.2s ease-in-out infinite; }
+  .bobber.bite { animation:bite .26s ease-in-out infinite; }
+  @keyframes floaty { 0%,100%{transform:translateX(-50%) translateY(0);} 50%{transform:translateX(-50%) translateY(6px);} }
+  @keyframes bite { 0%,100%{transform:translateX(-50%) translateY(0);} 50%{transform:translateX(-50%) translateY(13px);} }
+  .ring { position:absolute; top:34%; left:50%; width:10px; height:10px; border:2px solid rgba(255,255,255,.7);
+          border-radius:50%; transform:translate(-50%,-50%); opacity:0; }
+  .ring.go { animation:ripple 1s ease-out; }
+  @keyframes ripple { from{width:10px;height:10px;opacity:.8;} to{width:120px;height:120px;opacity:0;} }
 
-  .title { margin-top: 14px; font-size: 26px; font-weight: 800; color: #0b3d63;
-           text-shadow: 0 2px 0 rgba(255,255,255,.5); z-index: 5; }
-  .subtitle { color: #0b3d63; opacity:.75; font-size: 13px; margin-top: 2px; z-index:5; }
+  .stage { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:22px; z-index:6; width:100%; }
+  .catch { font-size:58px; line-height:1; filter:drop-shadow(0 6px 6px rgba(0,0,0,.25)); opacity:0; transform:scale(.4) translateY(20px); }
+  .catch.show { animation:pop .6s cubic-bezier(.2,1.4,.4,1) forwards; }
+  @keyframes pop { to{opacity:1; transform:scale(1) translateY(0);} }
+  .catch-name { color:#fff; font-weight:800; font-size:17px; text-shadow:0 2px 4px rgba(0,0,0,.35); min-height:22px; margin-top:5px; text-align:center; padding:0 14px; }
 
-  /* Панель рахунку */
-  .hud { display:flex; gap: 10px; margin-top: 10px; z-index: 5; flex-wrap: wrap; justify-content:center; }
-  .chip { background: rgba(255,255,255,.85); border-radius: 999px; padding: 6px 14px;
-          font-weight: 700; color:#0b3d63; font-size: 14px; box-shadow: 0 3px 8px rgba(0,0,0,.1); }
+  /* Шкала сили */
+  .fight { display:none; width:min(92%,420px); margin-bottom:10px; }
+  .fight-row { display:flex; align-items:center; gap:8px; }
+  .fight-row .fico { font-size:26px; }
+  .powerwrap { flex:1; height:22px; background:rgba(0,0,0,.28); border-radius:999px; overflow:hidden; border:2px solid rgba(255,255,255,.6); box-shadow:inset 0 2px 6px rgba(0,0,0,.3); }
+  .power { height:100%; width:30%; background:#e02424; border-radius:999px; transition:width .06s linear, background .1s; }
+  .fight-label { text-align:center; color:#fff; font-weight:800; font-size:14px; margin-top:6px; text-shadow:0 2px 4px rgba(0,0,0,.4); }
 
-  /* Поплавок */
-  .bobber { position:absolute; top: 34.5%; left: 50%; transform: translateX(-50%);
-            width: 22px; height: 22px; z-index: 4; transition: top .25s; }
-  .bobber .ball { width: 22px; height: 22px; border-radius: 50%;
-            background: radial-gradient(circle at 35% 30%, #ff8a8a, #e02424 65%);
-            border: 2px solid #fff; box-shadow: 0 3px 6px rgba(0,0,0,.25); position: relative; }
-  .bobber .ball::after { content:""; position:absolute; left:0; right:0; top:50%;
-            height: 6px; background:#fff; }
-  .bobber.idle { animation: floaty 2.2s ease-in-out infinite; }
-  .bobber.bite { animation: bite .28s ease-in-out infinite; }
-  @keyframes floaty { 0%,100%{ transform: translateX(-50%) translateY(0);} 50%{ transform: translateX(-50%) translateY(6px);} }
-  @keyframes bite   { 0%,100%{ transform: translateX(-50%) translateY(0);} 50%{ transform: translateX(-50%) translateY(14px);} }
-  .ring { position:absolute; top: 36%; left:50%; width: 10px; height: 10px; border:2px solid rgba(255,255,255,.7);
-          border-radius:50%; transform: translate(-50%,-50%); opacity:0; }
-  .ring.go { animation: ripple 1s ease-out; }
-  @keyframes ripple { from{ width:10px;height:10px;opacity:.8;} to{ width:120px;height:120px;opacity:0;} }
+  .status { color:#fff; font-weight:700; font-size:16px; min-height:22px; margin-bottom:11px; text-shadow:0 2px 4px rgba(0,0,0,.35); text-align:center; padding:0 16px; }
 
-  /* Центральна зона повідомлень */
-  .stage { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
-           padding-bottom: 24px; z-index: 6; width: 100%; }
-  .catch { font-size: 66px; line-height:1; filter: drop-shadow(0 6px 6px rgba(0,0,0,.25));
-           opacity:0; transform: scale(.4) translateY(20px); }
-  .catch.show { animation: pop .6s cubic-bezier(.2,1.4,.4,1) forwards; }
-  @keyframes pop { to { opacity:1; transform: scale(1) translateY(0);} }
-  .catch-name { color:#fff; font-weight:800; font-size: 18px; text-shadow: 0 2px 4px rgba(0,0,0,.35);
-                min-height: 24px; margin-top: 6px; text-align:center; }
-  .status { color:#fff; font-weight:700; font-size: 17px; min-height: 24px; margin-bottom: 12px;
-            text-shadow: 0 2px 4px rgba(0,0,0,.35); text-align:center; padding: 0 16px; }
+  .btn { background:linear-gradient(#22c55e,#16a34a); color:#fff; border:none; font-size:21px; font-weight:800;
+         padding:15px 40px; border-radius:999px; box-shadow:0 6px 0 #0e7a34,0 10px 18px rgba(0,0,0,.25);
+         cursor:pointer; transition:transform .05s,box-shadow .05s; z-index:6; }
+  .btn:active { transform:translateY(4px); box-shadow:0 2px 0 #0e7a34,0 5px 10px rgba(0,0,0,.25); }
+  .btn.reel { background:linear-gradient(#f59e0b,#d97706); box-shadow:0 6px 0 #a45907,0 10px 18px rgba(0,0,0,.25); }
+  .btn.reel:active { box-shadow:0 2px 0 #a45907,0 5px 10px rgba(0,0,0,.25); }
+  .btn.pull { background:linear-gradient(#ef4444,#dc2626); box-shadow:0 6px 0 #991b1b,0 10px 18px rgba(0,0,0,.25); font-size:24px; padding:18px 52px; }
+  .btn.pull:active { box-shadow:0 2px 0 #991b1b,0 5px 10px rgba(0,0,0,.25); }
+  .btn:disabled { opacity:.55; filter:grayscale(.3); }
+  .hint { color:#0b3d63; opacity:.6; font-size:11px; margin-top:11px; margin-bottom:4px; z-index:6; text-align:center; padding:0 16px; }
 
-  .btn { background: linear-gradient(#22c55e, #16a34a); color:#fff; border:none;
-         font-size: 22px; font-weight: 800; padding: 16px 44px; border-radius: 999px;
-         box-shadow: 0 6px 0 #0e7a34, 0 10px 18px rgba(0,0,0,.25); cursor:pointer;
-         transition: transform .05s, box-shadow .05s; z-index: 6; }
-  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #0e7a34, 0 5px 10px rgba(0,0,0,.25); }
-  .btn.reel { background: linear-gradient(#f59e0b, #d97706); box-shadow: 0 6px 0 #a45907, 0 10px 18px rgba(0,0,0,.25); }
-  .btn.reel:active { box-shadow: 0 2px 0 #a45907, 0 5px 10px rgba(0,0,0,.25); }
-  .btn:disabled { opacity:.55; filter: grayscale(.3); }
+  .log { position:absolute; bottom:0; left:0; right:0; background:rgba(3,40,66,.82); color:#fff; padding:8px 12px;
+         font-size:13px; display:flex; gap:8px; align-items:center; overflow-x:auto; white-space:nowrap; z-index:7;
+         backdrop-filter:blur(4px); min-height:40px; }
+  .log b { color:#ffd84a; margin-right:4px; }
+  .log .item { display:inline-block; margin-right:10px; }
 
-  .hint { color:#0b3d63; opacity:.6; font-size: 12px; margin-top: 12px; margin-bottom: 6px; z-index:6; text-align:center; }
+  .toast { position:absolute; top:28%; left:50%; transform:translateX(-50%); background:rgba(3,40,66,.92); color:#fff;
+           padding:8px 16px; border-radius:999px; font-weight:700; font-size:14px; opacity:0; z-index:9; pointer-events:none; text-align:center; }
+  .toast.show { animation:toast 1.5s ease; }
+  @keyframes toast { 0%{opacity:0;transform:translateX(-50%) translateY(6px);} 15%,70%{opacity:1;transform:translateX(-50%) translateY(0);} 100%{opacity:0;} }
 
-  /* Журнал улову */
-  .log { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(3,40,66,.82);
-         color:#fff; padding: 8px 12px; font-size: 13px; display:flex; gap:8px; align-items:center;
-         overflow-x:auto; white-space:nowrap; z-index: 7; backdrop-filter: blur(4px); min-height: 40px; }
-  .log b { color:#ffd84a; margin-right: 4px; }
-  .log .item { display:inline-block; margin-right: 10px; }
-
-  .toast { position:absolute; top: 30%; left:50%; transform: translateX(-50%);
-           background: rgba(3,40,66,.9); color:#fff; padding: 8px 16px; border-radius: 999px;
-           font-weight:700; font-size: 14px; opacity:0; z-index: 9; pointer-events:none; }
-  .toast.show { animation: toast 1.4s ease; }
-  @keyframes toast { 0%{opacity:0; transform:translateX(-50%) translateY(6px);} 15%,70%{opacity:1; transform:translateX(-50%) translateY(0);} 100%{opacity:0;} }
+  /* Оверлей подій (ТЦК / реклама) */
+  .overlay { position:fixed; inset:0; z-index:20; display:none; align-items:center; justify-content:center; padding:18px;
+             background:rgba(0,0,0,.6); backdrop-filter:blur(3px); }
+  .overlay.on { display:flex; animation:fade .25s ease; }
+  @keyframes fade { from{opacity:0;} to{opacity:1;} }
+  .card { width:min(94%,430px); border-radius:20px; padding:22px 20px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,.5); }
+  .card.tck { background:linear-gradient(160deg,#3a4a2a,#212b18); border:2px solid #6b7a4a; }
+  .card.ad { background:linear-gradient(160deg,#1e293b,#0f172a); border:2px solid #38bdf8; }
+  .card .big { font-size:56px; line-height:1; margin-bottom:6px; }
+  .card h2 { color:#fff; font-size:22px; margin-bottom:8px; }
+  .card p { color:#e5e7eb; font-size:15px; line-height:1.45; margin-bottom:6px; }
+  .card .sub { color:#cbd5e1; font-size:13px; opacity:.85; margin-bottom:14px; }
+  .obtn { display:block; width:100%; border:none; border-radius:12px; padding:14px; font-size:16px; font-weight:800;
+          cursor:pointer; margin-top:9px; transition:transform .05s,filter .1s; }
+  .obtn:active { transform:translateY(2px); }
+  .obtn:disabled { opacity:.45; cursor:not-allowed; }
+  .obtn.pay { background:linear-gradient(#22c55e,#16a34a); color:#fff; }
+  .obtn.credit { background:linear-gradient(#f59e0b,#d97706); color:#fff; }
+  .obtn.skip { background:linear-gradient(#38bdf8,#0284c7); color:#fff; }
+  .ad-timer { color:#fff; font-weight:800; font-size:14px; margin-top:6px; min-height:20px; }
+  .ad-slogan { color:#fbbf24; font-weight:700; font-size:15px; margin:8px 0; }
+  .siren { animation:siren .5s steps(2) infinite; }
+  @keyframes siren { 0%{filter:hue-rotate(0);} 50%{filter:hue-rotate(-40deg) brightness(1.2);} }
 </style>
 </head>
 <body>
@@ -105,168 +121,290 @@
   <div class="wave"></div>
 
   <div class="title">🎣 Рибалка</div>
-  <div class="subtitle">закидай вудку і лови!</div>
+  <div class="subtitle">закидай, тягни по шкалі й лови!</div>
 
   <div class="hud">
+    <div class="chip">💰 Очки: <span id="score">0</span></div>
+    <div class="chip debt" id="debtChip" style="display:none">🧾 Борг: <span id="debt">0</span></div>
     <div class="chip">🐟 Улов: <span id="count">0</span></div>
-    <div class="chip">🏆 Рекорд: <span id="best">—</span></div>
+    <div class="chip mute" id="mute">🔊</div>
   </div>
 
   <div class="ring" id="ring"></div>
-  <div class="bobber" id="bobber" style="display:none">
-    <div class="ball"></div>
-  </div>
+  <div class="bobber" id="bobber" style="display:none"><div class="ball"></div></div>
 
   <div class="stage">
     <div class="catch" id="catch">🐟</div>
     <div class="catch-name" id="catchName"></div>
+
+    <div class="fight" id="fight">
+      <div class="fight-row">
+        <span class="fico">🐟</span>
+        <div class="powerwrap"><div class="power" id="power"></div></div>
+        <span class="fico">🪝</span>
+      </div>
+      <div class="fight-label" id="fightLabel">ТЯГНИ! 💪</div>
+    </div>
+
     <div class="status" id="status">Натисни «Закинути», щоб почати 👇</div>
     <button class="btn" id="btn">Закинути</button>
-    <div class="hint" id="hint">коли поплавок сіпнеться — швидко тисни «Підсікай!»</div>
+    <div class="hint" id="hint">клює → «Підсікай!» → мешь кнопку «ТЯГНИ!», щоб заповнити шкалу</div>
   </div>
 
   <div class="log" id="log"><b>Журнал:</b> <span style="opacity:.7">поки порожньо…</span></div>
   <div class="toast" id="toast"></div>
 
+  <div class="overlay" id="overlay"><div id="overlayCard"></div></div>
+
 <script>
 (function(){
-  const fish = [
-    // emoji, name, weight range [min,max] kg, rarity weight (більше = частіше), points
-    { e:"👢", n:"Старий чобіт",        min:0.5, max:2,   w:14, p:1  },
-    { e:"🥫", n:"Іржава банка",         min:0.1, max:0.4, w:12, p:1  },
-    { e:"🐟", n:"Плотвичка",            min:0.1, max:0.6, w:22, p:2  },
-    { e:"🐠", n:"Окунь смугастий",      min:0.3, max:1.5, w:18, p:3  },
-    { e:"🐡", n:"Йоршик колючий",       min:0.1, max:0.4, w:12, p:3  },
-    { e:"🦀", n:"Рак-забіяка",          min:0.2, max:0.9, w:8,  p:4  },
-    { e:"🐍", n:"Вугор слизький",       min:1,   max:3,   w:6,  p:5  },
-    { e:"🐙", n:"Восьминіг (звідки?!)", min:2,   max:5,   w:3,  p:8  },
-    { e:"🦈", n:"Акуленя",              min:5,   max:40,  w:2,  p:15 },
-    { e:"🏆", n:"ЛЕГЕНДАРНИЙ короп-гігант", min:8, max:25, w:1, p:25 },
-    { e:"🥾", n:"Другий чобіт (пара!)", min:0.5, max:2,   w:5,  p:2  },
-    { e:"💎", n:"Скарб на дні!",        min:0,   max:0,   w:1,  p:30 },
+  // ---------- Улови ----------
+  // e-емодзі, n-назва, p-очки, d-опір (складність шкали), w-шанс, s-спецулов
+  const POOL = [
+    // риба
+    { e:"🐟", n:"Плотвичка",              p:5,  d:1.0, w:20 },
+    { e:"🐠", n:"Окунь смугастий",         p:9,  d:1.4, w:15 },
+    { e:"🐡", n:"Йоршик колючий",          p:7,  d:1.3, w:11 },
+    { e:"🦀", n:"Рак-забіяка",             p:12, d:1.8, w:7  },
+    { e:"🐍", n:"Вугор слизький",          p:15, d:2.1, w:5  },
+    { e:"🦐", n:"Креветка з Нової Пошти",  p:6,  d:1.1, w:7  },
+    { e:"🐸", n:"Жабеня-огидко",           p:4,  d:1.1, w:7  },
+    { e:"🦑", n:"Кальмар (заблукав)",      p:16, d:2.0, w:4  },
+    // приколи-непотріб
+    { e:"👢", n:"Старий чобіт",            p:2,  d:0.9, w:11 },
+    { e:"🥫", n:"Іржава банка",            p:1,  d:0.8, w:9  },
+    { e:"🧦", n:"Друга шкарпетка (пара!)", p:3,  d:1.0, w:6  },
+    { e:"📱", n:"Nokia 3310 (жива!)",      p:22, d:1.6, w:4  },
+    { e:"🛴", n:"Самокат Bolt",            p:18, d:2.0, w:4  },
+    { e:"🔑", n:"Чужі ключі від хати",     p:5,  d:1.2, w:6  },
+    { e:"🦆", n:"Гумовий каченя",          p:8,  d:1.0, w:6  },
+    { e:"🩴", n:"Одна в'єтнамка",          p:3,  d:0.9, w:6  },
+    { e:"💾", n:"Флешка з 'домашкою'",     p:10, d:1.3, w:5  },
+    { e:"🛒", n:"Візок з АТБ",             p:14, d:2.0, w:3  },
+    { e:"🧲", n:"Улов на магніт",          p:9,  d:1.4, w:4  },
+    { e:"🕶️", n:"Ray-Ban (репліка з ринку)", p:11, d:1.5, w:4 },
+    { e:"🦴", n:"Чиясь кістка",            p:6,  d:1.2, w:5  },
+    { e:"👑", n:"Корона з випускного",     p:13, d:1.7, w:3  },
+    { e:"🧸", n:"Мокрий плюшевий ведмідь", p:7,  d:1.2, w:5  },
+    // СПЕЦУЛОВИ — важко тягнуться
+    { e:"🧭", n:"Патч Stone Island",       p:60, d:2.9, w:3, s:true },
+    { e:"🦠", n:"Гепатит В",               p:45, d:3.0, w:3, s:true },
+    { e:"🌿", n:"Закладка «3г шиш»",        p:70, d:3.3, w:2, s:true },
+    { e:"🪄", n:"Паличка Гаррі Поттера",   p:85, d:3.6, w:2, s:true },
+    { e:"🍺", n:"Пиво біля фонтану",       p:40, d:2.7, w:3, s:true },
+    { e:"☕", n:"Кофейок в Валео",         p:35, d:2.7, w:3, s:true },
+    { e:"🍕", n:"Піца селянська",          p:50, d:3.1, w:3, s:true },
   ];
 
   const $ = id => document.getElementById(id);
-  const bobber = $("bobber"), btn = $("btn"), status = $("status"),
-        catchEl = $("catch"), catchName = $("catchName"), ring = $("ring"),
-        countEl = $("count"), bestEl = $("best"), log = $("log"), toast = $("toast");
+  const bobber=$("bobber"), btn=$("btn"), statusEl=$("status"), catchEl=$("catch"), catchName=$("catchName"),
+        ring=$("ring"), scoreEl=$("score"), debtEl=$("debt"), debtChip=$("debtChip"), countEl=$("count"),
+        log=$("log"), toast=$("toast"), fight=$("fight"), power=$("power"), fightLabel=$("fightLabel"),
+        overlay=$("overlay"), overlayCard=$("overlayCard"), muteBtn=$("mute");
 
-  let state = "idle";     // idle | waiting | bite | reeling
-  let count = 0, best = 0, bestName = "—";
-  let biteTimer = null, missTimer = null;
-  let logItems = [];
+  let state="idle";        // idle | waiting | bite | fighting | event
+  let score=0, debt=0, count=0;
+  let biteTimer=null, missTimer=null, fightTimer=null;
+  let progress=0, current=null;
+  let logItems=[];
+  let muted=false;
 
-  function pickFish(){
-    const total = fish.reduce((s,f)=>s+f.w,0);
-    let r = rand()*total;
-    for(const f of fish){ r -= f.w; if(r<=0) return f; }
-    return fish[0];
+  // ---------- Звук (WebAudio) ----------
+  let AC=null;
+  function ac(){ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; } } if(AC.state==="suspended") AC.resume(); return AC; }
+  function beep(freq,dur,type,vol,delay){
+    if(muted) return; const c=ac(); if(!c) return;
+    const t=c.currentTime+(delay||0);
+    const o=c.createOscillator(), g=c.createGain();
+    o.type=type||"sine"; o.frequency.value=freq;
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol||.2,t+.008);
+    g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t+dur+.03);
   }
-  // простий генератор випадкових (щоб не залежати від нічого)
-  function rand(){ return Math.random(); }
+  function slide(f1,f2,dur,type,vol){
+    if(muted) return; const c=ac(); if(!c) return; const t=c.currentTime;
+    const o=c.createOscillator(), g=c.createGain(); o.type=type||"sawtooth";
+    o.frequency.setValueAtTime(f1,t); o.frequency.exponentialRampToValueAtTime(f2,t+dur);
+    g.gain.setValueAtTime(vol||.2,t); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t+dur+.03);
+  }
+  function noise(dur,vol,cut){
+    if(muted) return; const c=ac(); if(!c) return;
+    const b=c.createBuffer(1,Math.floor(c.sampleRate*dur),c.sampleRate);
+    const dt=b.getChannelData(0);
+    for(let i=0;i<dt.length;i++) dt[i]=(Math.random()*2-1)*(1-i/dt.length);
+    const s=c.createBufferSource(); s.buffer=b;
+    const f=c.createBiquadFilter(); f.type="lowpass"; f.frequency.value=cut||1200;
+    const g=c.createGain(); g.gain.value=vol||.3;
+    s.connect(f).connect(g).connect(c.destination); s.start();
+  }
+  const sfx = {
+    cast(){ noise(.28,.28,900); beep(200,.18,"sine",.15,.02); },
+    bite(){ beep(950,.09,"square",.22); beep(1250,.09,"square",.22,.12); },
+    reel(){ beep(180+Math.min(progress,100)*5,.05,"square",.14); },
+    win(){ [523,659,784,1046].forEach((f,i)=>beep(f,.14,"triangle",.22,i*.09)); },
+    fail(){ slide(400,90,.5,"sawtooth",.22); },
+    siren(){ for(let i=0;i<4;i++){ beep(700,.22,"sawtooth",.18,i*.44); beep(500,.22,"sawtooth",.18,i*.44+.22); } },
+    cash(){ beep(1250,.08,"square",.2); beep(1650,.1,"square",.2,.09); },
+    ad(){ [660,880,660,1046].forEach((f,i)=>beep(f,.16,"triangle",.2,i*.13)); }
+  };
 
-  function showToast(txt){
-    toast.textContent = txt; toast.classList.remove("show");
-    void toast.offsetWidth; toast.classList.add("show");
+  // ---------- Утиліти ----------
+  function rnd(){ return Math.random(); }
+  function pick(){
+    const total=POOL.reduce((s,f)=>s+f.w,0);
+    let r=rnd()*total;
+    for(const f of POOL){ r-=f.w; if(r<=0) return f; }
+    return POOL[0];
+  }
+  function showToast(t){ toast.textContent=t; toast.classList.remove("show"); void toast.offsetWidth; toast.classList.add("show"); }
+  function ripple(){ ring.classList.remove("go"); void ring.offsetWidth; ring.classList.add("go"); }
+  function updateHud(){
+    scoreEl.textContent=score; countEl.textContent=count; debtEl.textContent=debt;
+    debtChip.style.display = debt>0 ? "" : "none";
+  }
+  function renderLog(){
+    log.innerHTML = "<b>Журнал:</b> " + (logItems.length? logItems.map(t=>'<span class="item">'+t+'</span>').join("") : '<span style="opacity:.7">поки порожньо…</span>');
   }
 
-  function reset(){
-    state = "idle";
-    bobber.style.display = "none";
-    bobber.className = "bobber";
-    btn.textContent = "Закинути";
-    btn.className = "btn";
-    btn.disabled = false;
-    status.textContent = "Натисни «Закинути», щоб знову закинути 🎣";
+  // ---------- Ігровий цикл ----------
+  function readyToCast(msg){
+    state="idle"; bobber.style.display="none"; bobber.className="bobber"; fight.style.display="none";
+    btn.textContent="Закинути"; btn.className="btn"; btn.disabled=false;
+    statusEl.textContent=msg || "Натисни «Закинути» 🎣";
   }
 
   function cast(){
-    state = "waiting";
-    catchEl.classList.remove("show");
-    catchName.textContent = "";
-    bobber.style.display = "block";
-    bobber.className = "bobber idle";
-    bobber.style.top = "34.5%";
-    btn.textContent = "Чекаємо…";
-    btn.disabled = true;
-    btn.className = "btn";
-    status.textContent = "Вудка закинута. Чекаємо поклівку… 🎣";
-    ring.classList.remove("go"); void ring.offsetWidth; ring.classList.add("go");
-
-    const wait = 1500 + rand()*4000; // 1.5–5.5 c
-    biteTimer = setTimeout(startBite, wait);
+    state="waiting"; catchEl.classList.remove("show"); catchName.textContent="";
+    bobber.style.display="block"; bobber.className="bobber idle"; bobber.style.top="32.5%";
+    btn.textContent="Чекаємо…"; btn.disabled=true; btn.className="btn";
+    statusEl.textContent="Вудка закинута. Чекаємо поклівку… 🎣";
+    ripple(); sfx.cast();
+    biteTimer=setTimeout(startBite, 1400 + rnd()*3800);
   }
 
   function startBite(){
-    state = "bite";
-    bobber.className = "bobber bite";
-    bobber.style.top = "36%";
-    btn.textContent = "ПІДСІКАЙ! 🔥";
-    btn.className = "btn reel";
-    btn.disabled = false;
-    status.textContent = "КЛЮЄ!!! Швидко тисни! ⚡";
-    showToast("Поклівка! 🎣");
-    ring.classList.remove("go"); void ring.offsetWidth; ring.classList.add("go");
-
-    missTimer = setTimeout(miss, 1200);
+    state="bite"; bobber.className="bobber bite"; bobber.style.top="35%";
+    btn.textContent="Підсікай! 🔥"; btn.className="btn reel"; btn.disabled=false;
+    statusEl.textContent="КЛЮЄ!!! Швидко підсікай! ⚡"; showToast("Поклівка! 🎣"); ripple(); sfx.bite();
+    missTimer=setTimeout(missBite, 1200);
+  }
+  function missBite(){
+    state="idle"; bobber.className="bobber idle"; sfx.fail();
+    statusEl.textContent="Проґавив поклівку… 😅"; btn.textContent="Закинути ще"; btn.className="btn"; btn.disabled=false;
+    showToast("Зірвалась 😢"); bobber.style.display="none";
   }
 
-  function miss(){
-    state = "idle";
-    bobber.className = "bobber idle";
-    status.textContent = "Ех, зірвалась… 😅 Спробуй ще раз!";
-    btn.textContent = "Закинути ще";
-    btn.className = "btn";
-    btn.disabled = false;
-    showToast("Зірвалась 😢");
-    state = "idle";
-  }
-
-  function reelIn(){
+  const START=30, WIN=100, TICK=80, PULL=9;
+  function startFight(){
     clearTimeout(missTimer);
-    const f = pickFish();
-    count++;
-    let weight = 0, points = f.p;
-    let sizeText = "";
-    if(f.max > 0){
-      weight = +(f.min + rand()*(f.max - f.min)).toFixed(1);
-      sizeText = " • " + weight + " кг";
-      points += Math.round(weight);
-    }
+    state="fighting"; current=pick(); progress=START;
+    bobber.style.display="none"; fight.style.display="block";
+    document.querySelectorAll(".fico")[0].textContent = current.s ? "🎣" : "🐟";
+    btn.textContent="ТЯГНИ! 💪"; btn.className="btn pull"; btn.disabled=false;
+    statusEl.textContent = current.s ? "Щось ВЕЛИКЕ на гачку! Тягни щосили! 💪" : "На гачку! Мешь кнопку — тягни! 💪";
+    fightLabel.textContent = current.s ? "ВАЖКИЙ УЛОВ — не відпускай!" : "ТЯГНИ! 💪";
+    updatePower();
+    fightTimer=setInterval(()=>{
+      progress -= current.d;
+      if(progress<=0){ progress=0; updatePower(); escapeFish(); return; }
+      updatePower();
+    }, TICK);
+  }
+  function pull(){
+    progress += PULL; sfx.reel();
+    if(progress>=WIN){ progress=100; updatePower(); land(); return; }
+    updatePower();
+  }
+  function updatePower(){
+    power.style.width = progress + "%";
+    const c = progress<40 ? "#ef4444" : progress<72 ? "#f59e0b" : "#22c55e";
+    power.style.background = c;
+  }
+  function escapeFish(){
+    clearInterval(fightTimer); fight.style.display="none"; sfx.fail();
+    state="idle"; statusEl.textContent="Зірвалась! 😩 Риба виявилась сильнішою.";
+    btn.textContent="Закинути ще"; btn.className="btn"; btn.disabled=false;
+    showToast("Втекла 🐟💨");
+  }
+  function land(){
+    clearInterval(fightTimer); fight.style.display="none";
+    const f=current; count++; score+=f.p;
+    catchEl.textContent=f.e; catchEl.classList.remove("show"); void catchEl.offsetWidth; catchEl.classList.add("show");
+    catchName.textContent = f.n + " • +" + f.p + " оч.";
+    logItems.unshift(f.e+" "+f.n+" (+"+f.p+")"); if(logItems.length>25) logItems.pop();
+    renderLog(); updateHud(); sfx.win();
+    if(f.s) showToast("🔥 РІДКІСНИЙ УЛОВ: "+f.n+"! +"+f.p);
 
-    catchEl.textContent = f.e;
-    catchEl.classList.remove("show"); void catchEl.offsetWidth; catchEl.classList.add("show");
-    catchName.textContent = f.n + sizeText;
-
-    countEl.textContent = count;
-    if(points > best){ best = points; bestName = f.n; bestEl.textContent = bestName + " (" + best + " оч.)"; }
-
-    logItems.unshift(f.e + " " + f.n + (sizeText||""));
-    if(logItems.length > 20) logItems.pop();
-    renderLog();
-
-    if(f.n.includes("ЛЕГЕНДАРНИЙ") || f.e==="💎" || f.e==="🦈") showToast("ВАУ! " + f.n + "! 🎉");
-
-    bobber.style.display = "none";
-    btn.textContent = "Закинути ще 🎣";
-    btn.className = "btn";
-    btn.disabled = false;
-    status.textContent = "Спіймав: " + f.n + (sizeText? sizeText:"") + " • +" + points + " оч.";
-    state = "idle";
+    // події
+    const isTCK = (count===3 || count===33 || count===66);
+    const isAd  = (count%10===0);
+    if(isTCK){ btn.disabled=true; statusEl.textContent="Ой-ой… хтось під'їхав 👀"; setTimeout(showTCK,1200); }
+    else if(isAd){ btn.disabled=true; statusEl.textContent="Рекламна пауза наближається…"; setTimeout(showAd,1200); }
+    else { readyToCast("Спіймав: "+f.n+"! Закидай ще 🎣"); }
   }
 
-  function renderLog(){
-    log.innerHTML = "<b>Журнал:</b> " + logItems.map(t=>'<span class="item">'+t+'</span>').join("");
+  // ---------- ТЦК ----------
+  function showTCK(){
+    state="event";
+    const canPay = score>=100;
+    overlayCard.className="card tck";
+    overlayCard.innerHTML =
+      '<div class="big siren">🚐</div>'+
+      '<h2>ТЦК!!! Тебе бусифікували 🫡</h2>'+
+      '<p>Поки ти спокійно рибалив, під’їхав бусик. Тепер ти всередині.</p>'+
+      '<p class="sub">Щоб вийти — треба «домовитись»: хабар <b>100 очок</b>.<br>Зараз у тебе: <b>'+score+' оч.</b></p>'+
+      '<button class="obtn pay" id="btnPay" '+(canPay?"":"disabled")+'>💵 Дати хабар — 100 очок'+(canPay?"":" (не вистачає)")+'</button>'+
+      '<button class="obtn credit" id="btnCredit">🏦 Взяти кредит (і відкупитись)</button>';
+    overlay.classList.add("on"); sfx.siren();
+    $("btnPay").onclick=()=>{ if(score<100) return; score-=100; updateHud(); sfx.cash(); closeOverlay(); showToast("Відкупився 😮‍💨"); readyToCast("Пронесло! Знову на воду 🎣"); };
+    $("btnCredit").onclick=()=>{ debt+=150; updateHud(); sfx.cash(); closeOverlay(); showToast("Кредит оформлено. Винен банку "+debt+" 💸"); readyToCast("Вільний… але в боргах. Рибалимо далі 🎣"); };
   }
 
-  btn.addEventListener("click", function(){
-    if(state === "idle" || state === undefined){ cast(); }
-    else if(state === "bite"){ reelIn(); }
-  });
+  // ---------- Реклама ----------
+  const slogans = [
+    "☕ Кофейок в Валео — перша чашка вже чекає!",
+    "🍕 Піца селянська — як у бабусі в селі!",
+    "🧭 Stone Island — компас на рукаві, стиль у серці.",
+    "🛴 Bolt — доїдь до наступного фонтану!",
+    "📱 Nokia 3310 — заряд тримає, як твоя рішучість.",
+    "🏦 КредитОК — перші 100 очок під чесні 500%!"
+  ];
+  function showAd(){
+    state="event";
+    const slg = slogans[Math.floor(rnd()*slogans.length)];
+    overlayCard.className="card ad";
+    overlayCard.innerHTML =
+      '<div class="big">🚬</div>'+
+      '<h2>Час перекуру.<br>Ти не втомився?</h2>'+
+      '<p class="sub">Реклама від наших «спонсорів»</p>'+
+      '<div class="ad-slogan">'+slg+'</div>'+
+      '<div class="ad-timer" id="adTimer">Пропустити рекламу через 5…</div>'+
+      '<button class="obtn skip" id="btnSkip" disabled>Пропустити ▶</button>';
+    overlay.classList.add("on"); sfx.ad();
+    let left=5; const tEl=$("adTimer"), skip=$("btnSkip");
+    const iv=setInterval(()=>{
+      left--;
+      if(left<=0){ clearInterval(iv); tEl.textContent="Дякуємо, що подивились 🙃"; skip.disabled=false; }
+      else tEl.textContent="Пропустити рекламу через "+left+"…";
+    },1000);
+    skip.onclick=()=>{ if(skip.disabled) return; clearInterval(iv); closeOverlay(); readyToCast("Перекур закінчено. За вудку! 🎣"); };
+  }
 
-  bobber.addEventListener("click", function(){ if(state==="bite") reelIn(); });
+  function closeOverlay(){ overlay.classList.remove("on"); overlayCard.className="card"; overlayCard.innerHTML=""; }
 
-  reset();
+  // ---------- Керування ----------
+  function onMainClick(){
+    ac(); // розблоковуємо звук першим кліком
+    if(state==="idle") cast();
+    else if(state==="bite") startFight();
+    else if(state==="fighting") pull();
+  }
+  btn.addEventListener("click", onMainClick);
+  bobber.addEventListener("click", ()=>{ if(state==="bite") startFight(); });
+  muteBtn.addEventListener("click", ()=>{ muted=!muted; muteBtn.textContent=muted?"🔇":"🔊"; if(!muted) ac(); });
+
+  updateHud(); renderLog();
 })();
 </script>
 </body>
