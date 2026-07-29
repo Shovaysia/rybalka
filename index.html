@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🎣 Рибалка</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+  body {
+    background: linear-gradient(#8fd3ff 0%, #bfe8ff 38%, #4aa3d9 38%, #1c6fb0 100%);
+    display: flex; flex-direction: column; align-items: center;
+    user-select: none; touch-action: manipulation; position: relative;
+  }
+
+  /* Сонце */
+  .sun { position: absolute; top: 6%; right: 12%; width: 64px; height: 64px; border-radius: 50%;
+         background: radial-gradient(#fff6c0, #ffd84a 60%, #ffca1a); box-shadow: 0 0 40px #ffe57a; }
+
+  /* Хмаринки */
+  .cloud { position: absolute; background: #fff; border-radius: 50px; opacity: .9;
+           box-shadow: 0 8px 20px rgba(0,0,0,.05); }
+  .cloud::before, .cloud::after { content:""; position:absolute; background:#fff; border-radius:50%; }
+  .c1 { width: 90px; height: 26px; top: 12%; left: 10%; animation: drift 40s linear infinite; }
+  .c1::before { width: 40px; height: 40px; top: -18px; left: 12px; }
+  .c1::after  { width: 30px; height: 30px; top: -12px; left: 46px; }
+  .c2 { width: 70px; height: 22px; top: 22%; left: 55%; animation: drift 55s linear infinite; }
+  .c2::before { width: 32px; height: 32px; top: -14px; left: 10px; }
+  .c2::after  { width: 24px; height: 24px; top: -8px; left: 38px; }
+  @keyframes drift { from { transform: translateX(-10vw); } to { transform: translateX(110vw); } }
+
+  /* Хвильки на воді */
+  .wave { position:absolute; left:0; width:100%; top:38%; height:8px;
+          background: repeating-linear-gradient(90deg, transparent 0 14px, rgba(255,255,255,.35) 14px 28px);
+          animation: waves 3s linear infinite; }
+  @keyframes waves { from { background-position-x: 0; } to { background-position-x: 28px; } }
+
+  .title { margin-top: 14px; font-size: 26px; font-weight: 800; color: #0b3d63;
+           text-shadow: 0 2px 0 rgba(255,255,255,.5); z-index: 5; }
+  .subtitle { color: #0b3d63; opacity:.75; font-size: 13px; margin-top: 2px; z-index:5; }
+
+  /* Панель рахунку */
+  .hud { display:flex; gap: 10px; margin-top: 10px; z-index: 5; flex-wrap: wrap; justify-content:center; }
+  .chip { background: rgba(255,255,255,.85); border-radius: 999px; padding: 6px 14px;
+          font-weight: 700; color:#0b3d63; font-size: 14px; box-shadow: 0 3px 8px rgba(0,0,0,.1); }
+
+  /* Поплавок */
+  .bobber { position:absolute; top: 34.5%; left: 50%; transform: translateX(-50%);
+            width: 22px; height: 22px; z-index: 4; transition: top .25s; }
+  .bobber .ball { width: 22px; height: 22px; border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #ff8a8a, #e02424 65%);
+            border: 2px solid #fff; box-shadow: 0 3px 6px rgba(0,0,0,.25); position: relative; }
+  .bobber .ball::after { content:""; position:absolute; left:0; right:0; top:50%;
+            height: 6px; background:#fff; }
+  .bobber.idle { animation: floaty 2.2s ease-in-out infinite; }
+  .bobber.bite { animation: bite .28s ease-in-out infinite; }
+  @keyframes floaty { 0%,100%{ transform: translateX(-50%) translateY(0);} 50%{ transform: translateX(-50%) translateY(6px);} }
+  @keyframes bite   { 0%,100%{ transform: translateX(-50%) translateY(0);} 50%{ transform: translateX(-50%) translateY(14px);} }
+  .ring { position:absolute; top: 36%; left:50%; width: 10px; height: 10px; border:2px solid rgba(255,255,255,.7);
+          border-radius:50%; transform: translate(-50%,-50%); opacity:0; }
+  .ring.go { animation: ripple 1s ease-out; }
+  @keyframes ripple { from{ width:10px;height:10px;opacity:.8;} to{ width:120px;height:120px;opacity:0;} }
+
+  /* Центральна зона повідомлень */
+  .stage { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
+           padding-bottom: 24px; z-index: 6; width: 100%; }
+  .catch { font-size: 66px; line-height:1; filter: drop-shadow(0 6px 6px rgba(0,0,0,.25));
+           opacity:0; transform: scale(.4) translateY(20px); }
+  .catch.show { animation: pop .6s cubic-bezier(.2,1.4,.4,1) forwards; }
+  @keyframes pop { to { opacity:1; transform: scale(1) translateY(0);} }
+  .catch-name { color:#fff; font-weight:800; font-size: 18px; text-shadow: 0 2px 4px rgba(0,0,0,.35);
+                min-height: 24px; margin-top: 6px; text-align:center; }
+  .status { color:#fff; font-weight:700; font-size: 17px; min-height: 24px; margin-bottom: 12px;
+            text-shadow: 0 2px 4px rgba(0,0,0,.35); text-align:center; padding: 0 16px; }
+
+  .btn { background: linear-gradient(#22c55e, #16a34a); color:#fff; border:none;
+         font-size: 22px; font-weight: 800; padding: 16px 44px; border-radius: 999px;
+         box-shadow: 0 6px 0 #0e7a34, 0 10px 18px rgba(0,0,0,.25); cursor:pointer;
+         transition: transform .05s, box-shadow .05s; z-index: 6; }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #0e7a34, 0 5px 10px rgba(0,0,0,.25); }
+  .btn.reel { background: linear-gradient(#f59e0b, #d97706); box-shadow: 0 6px 0 #a45907, 0 10px 18px rgba(0,0,0,.25); }
+  .btn.reel:active { box-shadow: 0 2px 0 #a45907, 0 5px 10px rgba(0,0,0,.25); }
+  .btn:disabled { opacity:.55; filter: grayscale(.3); }
+
+  .hint { color:#0b3d63; opacity:.6; font-size: 12px; margin-top: 12px; margin-bottom: 6px; z-index:6; text-align:center; }
+
+  /* Журнал улову */
+  .log { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(3,40,66,.82);
+         color:#fff; padding: 8px 12px; font-size: 13px; display:flex; gap:8px; align-items:center;
+         overflow-x:auto; white-space:nowrap; z-index: 7; backdrop-filter: blur(4px); min-height: 40px; }
+  .log b { color:#ffd84a; margin-right: 4px; }
+  .log .item { display:inline-block; margin-right: 10px; }
+
+  .toast { position:absolute; top: 30%; left:50%; transform: translateX(-50%);
+           background: rgba(3,40,66,.9); color:#fff; padding: 8px 16px; border-radius: 999px;
+           font-weight:700; font-size: 14px; opacity:0; z-index: 9; pointer-events:none; }
+  .toast.show { animation: toast 1.4s ease; }
+  @keyframes toast { 0%{opacity:0; transform:translateX(-50%) translateY(6px);} 15%,70%{opacity:1; transform:translateX(-50%) translateY(0);} 100%{opacity:0;} }
+</style>
+</head>
+<body>
+  <div class="sun"></div>
+  <div class="cloud c1"></div>
+  <div class="cloud c2"></div>
+  <div class="wave"></div>
+
+  <div class="title">🎣 Рибалка</div>
+  <div class="subtitle">закидай вудку і лови!</div>
+
+  <div class="hud">
+    <div class="chip">🐟 Улов: <span id="count">0</span></div>
+    <div class="chip">🏆 Рекорд: <span id="best">—</span></div>
+  </div>
+
+  <div class="ring" id="ring"></div>
+  <div class="bobber" id="bobber" style="display:none">
+    <div class="ball"></div>
+  </div>
+
+  <div class="stage">
+    <div class="catch" id="catch">🐟</div>
+    <div class="catch-name" id="catchName"></div>
+    <div class="status" id="status">Натисни «Закинути», щоб почати 👇</div>
+    <button class="btn" id="btn">Закинути</button>
+    <div class="hint" id="hint">коли поплавок сіпнеться — швидко тисни «Підсікай!»</div>
+  </div>
+
+  <div class="log" id="log"><b>Журнал:</b> <span style="opacity:.7">поки порожньо…</span></div>
+  <div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  const fish = [
+    // emoji, name, weight range [min,max] kg, rarity weight (більше = частіше), points
+    { e:"👢", n:"Старий чобіт",        min:0.5, max:2,   w:14, p:1  },
+    { e:"🥫", n:"Іржава банка",         min:0.1, max:0.4, w:12, p:1  },
+    { e:"🐟", n:"Плотвичка",            min:0.1, max:0.6, w:22, p:2  },
+    { e:"🐠", n:"Окунь смугастий",      min:0.3, max:1.5, w:18, p:3  },
+    { e:"🐡", n:"Йоршик колючий",       min:0.1, max:0.4, w:12, p:3  },
+    { e:"🦀", n:"Рак-забіяка",          min:0.2, max:0.9, w:8,  p:4  },
+    { e:"🐍", n:"Вугор слизький",       min:1,   max:3,   w:6,  p:5  },
+    { e:"🐙", n:"Восьминіг (звідки?!)", min:2,   max:5,   w:3,  p:8  },
+    { e:"🦈", n:"Акуленя",              min:5,   max:40,  w:2,  p:15 },
+    { e:"🏆", n:"ЛЕГЕНДАРНИЙ короп-гігант", min:8, max:25, w:1, p:25 },
+    { e:"🥾", n:"Другий чобіт (пара!)", min:0.5, max:2,   w:5,  p:2  },
+    { e:"💎", n:"Скарб на дні!",        min:0,   max:0,   w:1,  p:30 },
+  ];
+
+  const $ = id => document.getElementById(id);
+  const bobber = $("bobber"), btn = $("btn"), status = $("status"),
+        catchEl = $("catch"), catchName = $("catchName"), ring = $("ring"),
+        countEl = $("count"), bestEl = $("best"), log = $("log"), toast = $("toast");
+
+  let state = "idle";     // idle | waiting | bite | reeling
+  let count = 0, best = 0, bestName = "—";
+  let biteTimer = null, missTimer = null;
+  let logItems = [];
+
+  function pickFish(){
+    const total = fish.reduce((s,f)=>s+f.w,0);
+    let r = rand()*total;
+    for(const f of fish){ r -= f.w; if(r<=0) return f; }
+    return fish[0];
+  }
+  // простий генератор випадкових (щоб не залежати від нічого)
+  function rand(){ return Math.random(); }
+
+  function showToast(txt){
+    toast.textContent = txt; toast.classList.remove("show");
+    void toast.offsetWidth; toast.classList.add("show");
+  }
+
+  function reset(){
+    state = "idle";
+    bobber.style.display = "none";
+    bobber.className = "bobber";
+    btn.textContent = "Закинути";
+    btn.className = "btn";
+    btn.disabled = false;
+    status.textContent = "Натисни «Закинути», щоб знову закинути 🎣";
+  }
+
+  function cast(){
+    state = "waiting";
+    catchEl.classList.remove("show");
+    catchName.textContent = "";
+    bobber.style.display = "block";
+    bobber.className = "bobber idle";
+    bobber.style.top = "34.5%";
+    btn.textContent = "Чекаємо…";
+    btn.disabled = true;
+    btn.className = "btn";
+    status.textContent = "Вудка закинута. Чекаємо поклівку… 🎣";
+    ring.classList.remove("go"); void ring.offsetWidth; ring.classList.add("go");
+
+    const wait = 1500 + rand()*4000; // 1.5–5.5 c
+    biteTimer = setTimeout(startBite, wait);
+  }
+
+  function startBite(){
+    state = "bite";
+    bobber.className = "bobber bite";
+    bobber.style.top = "36%";
+    btn.textContent = "ПІДСІКАЙ! 🔥";
+    btn.className = "btn reel";
+    btn.disabled = false;
+    status.textContent = "КЛЮЄ!!! Швидко тисни! ⚡";
+    showToast("Поклівка! 🎣");
+    ring.classList.remove("go"); void ring.offsetWidth; ring.classList.add("go");
+
+    missTimer = setTimeout(miss, 1200);
+  }
+
+  function miss(){
+    state = "idle";
+    bobber.className = "bobber idle";
+    status.textContent = "Ех, зірвалась… 😅 Спробуй ще раз!";
+    btn.textContent = "Закинути ще";
+    btn.className = "btn";
+    btn.disabled = false;
+    showToast("Зірвалась 😢");
+    state = "idle";
+  }
+
+  function reelIn(){
+    clearTimeout(missTimer);
+    const f = pickFish();
+    count++;
+    let weight = 0, points = f.p;
+    let sizeText = "";
+    if(f.max > 0){
+      weight = +(f.min + rand()*(f.max - f.min)).toFixed(1);
+      sizeText = " • " + weight + " кг";
+      points += Math.round(weight);
+    }
+
+    catchEl.textContent = f.e;
+    catchEl.classList.remove("show"); void catchEl.offsetWidth; catchEl.classList.add("show");
+    catchName.textContent = f.n + sizeText;
+
+    countEl.textContent = count;
+    if(points > best){ best = points; bestName = f.n; bestEl.textContent = bestName + " (" + best + " оч.)"; }
+
+    logItems.unshift(f.e + " " + f.n + (sizeText||""));
+    if(logItems.length > 20) logItems.pop();
+    renderLog();
+
+    if(f.n.includes("ЛЕГЕНДАРНИЙ") || f.e==="💎" || f.e==="🦈") showToast("ВАУ! " + f.n + "! 🎉");
+
+    bobber.style.display = "none";
+    btn.textContent = "Закинути ще 🎣";
+    btn.className = "btn";
+    btn.disabled = false;
+    status.textContent = "Спіймав: " + f.n + (sizeText? sizeText:"") + " • +" + points + " оч.";
+    state = "idle";
+  }
+
+  function renderLog(){
+    log.innerHTML = "<b>Журнал:</b> " + logItems.map(t=>'<span class="item">'+t+'</span>').join("");
+  }
+
+  btn.addEventListener("click", function(){
+    if(state === "idle" || state === undefined){ cast(); }
+    else if(state === "bite"){ reelIn(); }
+  });
+
+  bobber.addEventListener("click", function(){ if(state==="bite") reelIn(); });
+
+  reset();
+})();
+</script>
+</body>
+</html>
