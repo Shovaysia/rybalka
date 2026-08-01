@@ -281,6 +281,7 @@
   const RODS = [
     { id:"bamboo", name:"Бамбукова вудка",     price:0,    pull:11, wait:0,    luck:1.00, icon:"🎣", ds:"Стартова. Проста, але надійна." },
     { id:"mop",    name:"Держак від швабри",   price:40,   pull:8,  wait:0,    luck:0.90, icon:"🧹", ds:"Ну… воно теж ловить. Іноді." },
+    { id:"bong",   name:"Вудка «Бонг»",        price:160,  pull:13, wait:-100, luck:1.35, icon:"💨", ds:"Не питай, як воно ловить. Але «своє» клює частіше." },
     { id:"spin",   name:"Спінінг «Карась»",    price:180,  pull:14, wait:-250, luck:1.10, icon:"🎣", ds:"Легше вимотувати, швидший клювок." },
     { id:"carbon", name:"Карбон Pro",          price:650,  pull:18, wait:-500, luck:1.28, icon:"🎣", ds:"Потужна підсічка, більше рідкісних." },
     { id:"sea",    name:"Морський траль XL",   price:2200, pull:25, wait:-750, luck:1.65, icon:"🎣", ds:"Профі-снасть. Тягне навіть акул." },
@@ -349,7 +350,7 @@
     const g=c.createGain(); g.gain.value=vol||.3; s.connect(f).connect(g).connect(c.destination); s.start(); }
   const sfx = {
     cast(){ noise(.3,.25,800); beep(180,.2,"sine",.14,.02); },
-    bite(){ beep(950,.09,"square",.2); beep(1250,.09,"square",.2,.12); },
+    bite(){ const P=[1318.5,1975,2637]; for(let k=0;k<5;k++){ const d=k*0.085; P.forEach((f,i)=>beep(f*(k%2?1.012:1), .14, "sine", .15/(i+1), d)); } },
     reel(){ beep(150+Math.min(progress,100)*5,.05,"square",.12); },
     win(){ [523,659,784,1046].forEach((f,i)=>beep(f,.14,"triangle",.2,i*.09)); },
     fail(){ slide(380,80,.5,"sawtooth",.2); },
