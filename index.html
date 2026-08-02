@@ -679,28 +679,32 @@
 </div>
 
 <style>
-  #rybChat{position:fixed;right:20px;bottom:20px;z-index:99999;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-  #rybChatToggle{width:60px;height:60px;border:none;border-radius:50%;background:#0d6efd;color:#fff;font-size:28px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.25);transition:transform .15s}
-  #rybChatToggle:hover{transform:scale(1.06)}
-  #rybUnread{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:#e63946;color:#fff;font-size:12px;line-height:20px;display:none}
-  #rybChatBox{position:absolute;right:0;bottom:74px;width:340px;max-width:calc(100vw - 40px);height:460px;max-height:calc(100vh - 120px);background:#fff;border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow:hidden}
-  #rybChatHeader{background:#0d6efd;color:#fff;padding:14px 16px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
-  #rybChatHeader button{background:none;border:none;color:#fff;font-size:18px;cursor:pointer;line-height:1}
-  #rybNamePane{padding:24px 18px;display:flex;flex-direction:column;gap:12px;justify-content:center;height:100%;text-align:center}
-  #rybNamePane p{margin:0;font-size:17px;color:#333}
-  #rybNameInput,#rybInput{padding:11px 13px;border:1px solid #ccd;border-radius:10px;font-size:15px;outline:none;width:100%;box-sizing:border-box}
-  #rybNameInput:focus,#rybInput:focus{border-color:#0d6efd}
-  #rybNameBtn{padding:11px;border:none;border-radius:10px;background:#0d6efd;color:#fff;font-size:15px;font-weight:600;cursor:pointer}
+  #rybChat{position:fixed;right:16px;bottom:16px;z-index:99999;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  #rybChatToggle{width:52px;height:52px;border:1px solid rgba(74,168,255,.5);border-radius:50%;background:rgba(14,22,34,.85);color:#fff;font-size:24px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:transform .15s,box-shadow .2s}
+  #rybChatToggle:hover{transform:scale(1.08);box-shadow:0 4px 18px rgba(0,0,0,.5),0 0 14px rgba(74,168,255,.35)}
+  #rybUnread{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#f0a12e;color:#1a1208;font-size:11px;font-weight:700;line-height:18px;display:none}
+  #rybChatBox{position:absolute;right:0;bottom:64px;width:300px;max-width:calc(100vw - 32px);height:400px;max-height:calc(100vh - 110px);background:rgba(14,22,34,.92);border:1px solid rgba(255,255,255,.08);border-radius:14px;box-shadow:0 14px 44px rgba(0,0,0,.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;flex-direction:column;overflow:hidden;color:#eaf2f7}
+  #rybChatHeader{background:rgba(255,255,255,.04);color:#eaf2f7;padding:11px 14px;font-weight:600;font-size:14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.07)}
+  #rybChatHeader button{background:none;border:none;color:#8fa3b8;font-size:16px;cursor:pointer;line-height:1}
+  #rybChatHeader button:hover{color:#eaf2f7}
+  #rybNamePane{padding:22px 18px;display:flex;flex-direction:column;gap:11px;justify-content:center;height:100%;text-align:center}
+  #rybNamePane p{margin:0;font-size:15px;color:#c3d2e0}
+  #rybNameInput,#rybInput{padding:10px 12px;border:1px solid rgba(255,255,255,.14);border-radius:9px;font-size:14px;outline:none;width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);color:#eaf2f7}
+  #rybNameInput::placeholder,#rybInput::placeholder{color:#7f8fa0}
+  #rybNameInput:focus,#rybInput:focus{border-color:#4aa8ff}
+  #rybNameBtn{padding:10px;border:none;border-radius:9px;background:#4aa8ff;color:#06121f;font-size:14px;font-weight:700;cursor:pointer}
+  #rybNameBtn:hover{background:#63b6ff}
   #rybMainPane{display:flex;flex-direction:column;height:100%}
-  #rybMessages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;background:#f4f7fb}
-  .rybMsg{max-width:82%;padding:8px 12px;border-radius:14px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.08);font-size:14px;line-height:1.35;word-wrap:break-word}
-  .rybMsg .rybAuthor{display:block;font-size:11px;font-weight:700;color:#0d6efd;margin-bottom:2px}
-  .rybMsg.me{align-self:flex-end;background:#0d6efd;color:#fff}
-  .rybMsg.me .rybAuthor{color:#cfe2ff}
-  .rybMsg .rybTime{display:block;font-size:10px;opacity:.6;margin-top:3px;text-align:right}
-  #rybForm{display:flex;gap:8px;padding:10px;border-top:1px solid #eee;background:#fff}
-  #rybForm button{width:44px;flex:none;border:none;border-radius:10px;background:#0d6efd;color:#fff;font-size:16px;cursor:pointer}
-  @media(max-width:420px){#rybChatBox{width:calc(100vw - 32px)}}
+  #rybMessages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:7px;background:transparent}
+  .rybMsg{max-width:84%;padding:7px 11px;border-radius:12px;background:rgba(255,255,255,.07);font-size:13px;line-height:1.35;word-wrap:break-word}
+  .rybMsg .rybAuthor{display:block;font-size:10px;font-weight:700;color:#4aa8ff;margin-bottom:2px}
+  .rybMsg.me{align-self:flex-end;background:rgba(74,168,255,.9);color:#06121f}
+  .rybMsg.me .rybAuthor{color:#0a2740}
+  .rybMsg .rybTime{display:block;font-size:9px;opacity:.55;margin-top:3px;text-align:right}
+  #rybForm{display:flex;gap:7px;padding:9px;border-top:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.03)}
+  #rybForm button{width:40px;flex:none;border:none;border-radius:9px;background:#4aa8ff;color:#06121f;font-size:15px;cursor:pointer}
+  #rybForm button:hover{background:#63b6ff}
+  @media(max-width:420px){#rybChatBox{width:calc(100vw - 28px)}}
 </style>
 
 <!-- Firebase SDK (compat — просто вставляється, без збірки) -->
