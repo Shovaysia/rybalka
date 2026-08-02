@@ -459,9 +459,154 @@
     for(let i=0;i<POOL.length;i++){ r-=weights[i]; if(r<=0) return POOL[i]; }
     return POOL[0];
   }
-  function startFight(){
+  /* ===== РОЗШИРЕННЯ: важка риба, час доби, псевдо-3D ===== */
+let __dayT = 0.30, __extrasInit = false;
+const DAY_SECONDS = 480;
+
+function tryHeavyFish(){
+  try{
+    const rod = rodById(P.rodId);
+    const overmatch = current.d - rod.pull/10;
+    let ch = overmatch > 1.1 ? Math.min(0.55, (overmatch-1.1)*0.5) : 0;
+    if(Math.random() >= ch) return false;
+    state = "event";
+    const roll = Math.random();
+    if(roll < 0.55) heavyScene1();
+    else if(roll < 0.85) heavyScene2();
+    else heavyScene3();
+    return true;
+  }catch(e){ return false; }
+}
+function heavyScene1(){
+  eventCard.className = "card";
+  eventCard.innerHTML =
+    '<div class="big">🐋</div><h2>Заважке для вудки!</h2>'+
+    '<p>Щось велетенське рвонуло — і волосінь тріснула. Монстр зник у глибині разом з гачком.</p>'+
+    '<button class="obtn skip" id="btnHv1">Ех… закинути ще 🎣</button>';
+  eventOv.classList.add("on"); sfx.fail();
+  $("btnHv1").onclick = ()=>{ closeEvent(); readyToCast("Нова волосінь, новий гачок. Закидай 🎣"); };
+}
+function heavyScene2(){
+  eventCard.className = "card";
+  eventCard.innerHTML =
+    '<div class="big siren">🩹</div><h2>Ти рвонув за нею у воду…</h2>'+
+    '<p>Слизьке каміння — і ти сильно розсадив колінку. Треба знайти подорожник і прикласти.</p>'+
+    '<p style="margin-top:6px">Ліки (подорожник + йод) обійдуться у <b style="color:var(--ink)">100 🪙</b>.</p>'+
+    '<button class="obtn credit" id="btnHv2">🌿 Знайти подорожник і прикласти (−100 🪙)</button>';
+  eventOv.classList.add("on"); sfx.siren();
+  $("btnHv2").onclick = ()=>{ P.coins -= 100; refreshHud(); persist(); sfx.cash(); closeEvent();
+    showToast(P.coins<0 ? "Колінка ціла, а рахунок у мінусі 😬" : "Колінка як нова 🌿");
+    readyToCast("Підлатався. Обережніше наступного разу 🎣"); };
+}
+function heavyScene3(){
+  eventCard.className = "card";
+  eventCard.innerHTML =
+    '<div class="big siren">🧟</div><h2>Ти заразився…</h2>'+
+    '<p>Вода була брудна. Тебе лихоманить, шкіра береться лускою — ти перетворюєшся на <b style="color:var(--ink)">гнилу рибу</b> 🐟💀</p>'+
+    '<p style="margin-top:6px">Весь прогрес доведеться почати заново. Імʼя лишається з тобою.</p>'+
+    '<button class="obtn pay" id="btnHv3">Почати заново 🥀</button>';
+  eventOv.classList.add("on"); sfx.siren();
+  $("btnHv3").onclick = ()=>{
+    const keep = P.nick;
+    P = newProfile(keep); persist();
+    try{ $("ava").textContent = (P.nick[0]||"🎣").toUpperCase(); }catch(e){}
+    refreshHud(); closeEvent();
+    showToast("Ти переродився. З чистого аркуша… 🐟");
+    readyToCast("Нове життя, "+P.nick+". Закидай 🎣");
+  };
+}
+function syncChatName(){
+  try{
+    var inp = document.getElementById("rybNameInput"),
+        btn = document.getElementById("rybNameBtn"),
+        pane = document.getElementById("rybNamePane");
+    if(inp && btn && pane && !pane.hidden){ inp.value = P.nick; btn.click(); }
+  }catch(e){}
+}
+const SKYK = [
+  {h:0,  c:["#05070f","#0a1424","#101d33"]},
+  {h:5,  c:["#0a1430","#243a63","#7a5a63"]},
+  {h:7,  c:["#20344a","#7d7f86","#e6b98e"]},
+  {h:12, c:["#2a5f8f","#4d84b0","#bfe0f0"]},
+  {h:17, c:["#20344a","#8a7f7a","#e6b98e"]},
+  {h:19, c:["#241a3a","#7a3b5a","#e08a4a"]},
+  {h:21, c:["#0a1020","#141a34","#241a3a"]},
+  {h:24, c:["#05070f","#0a1424","#101d33"]}
+];
+function __lerpHex(a,b,t){
+  const pa=parseInt(a.slice(1),16), pb=parseInt(b.slice(1),16);
+  const ar=(pa>>16)&255,ag=(pa>>8)&255,ab=pa&255,br=(pb>>16)&255,bg=(pb>>8)&255,bb=pb&255;
+  return "rgb("+Math.round(ar+(br-ar)*t)+","+Math.round(ag+(bg-ag)*t)+","+Math.round(ab+(bb-ab)*t)+")";
+}
+function __skyAt(hour){
+  let i=0; for(;i<SKYK.length-1;i++){ if(hour>=SKYK[i].h && hour<=SKYK[i+1].h) break; }
+  const k0=SKYK[i], k1=SKYK[Math.min(i+1,SKYK.length-1)], span=(k1.h-k0.h)||1, t=(hour-k0.h)/span;
+  return [__lerpHex(k0.c[0],k1.c[0],t),__lerpHex(k0.c[1],k1.c[1],t),__lerpHex(k0.c[2],k1.c[2],t)];
+}
+function __buildStars(){
+  var s="",seed=1234;
+  for(var i=0;i<70;i++){ seed=(seed*9301+49297)%233280; var x=(seed/233280*100).toFixed(1);
+    seed=(seed*9301+49297)%233280; var y=(seed/233280*50).toFixed(1);
+    seed=(seed*9301+49297)%233280; var o=(0.35+seed/233280*0.6).toFixed(2);
+    s+=(i?",":"")+x+"vw "+y+"vh 0 0.6px rgba(255,255,255,"+o+")"; }
+  return s;
+}
+function initExtras(){
+  if(__extrasInit) return; __extrasInit=true;
+  try{
+    var scene=$("scene");
+    var st=document.createElement("style"); st.id="ryb3d";
+    st.textContent =
+      "#scene{perspective:1200px}"+
+      "#nightVeil{position:absolute;inset:0;pointer-events:none;z-index:1;background:rgba(4,8,20,0);transition:background .6s}"+
+      "#stars{position:absolute;left:0;right:0;top:0;height:52%;pointer-events:none;z-index:0;opacity:0;transition:opacity 2s}"+
+      "#stars i{position:absolute;left:0;top:0;width:1px;height:1px;border-radius:50%;background:#fff}"+
+      "#moon{position:absolute;width:60px;height:60px;border-radius:50%;pointer-events:none;z-index:0;opacity:0;transition:opacity 1.5s;background:radial-gradient(circle at 38% 36%,#fdfdf5,#cdd4e0 60%,#aeb6c6 100%);box-shadow:0 0 24px 6px rgba(220,230,255,.35)}"+
+      "#waves3d{position:absolute;left:-25%;right:-25%;top:50%;bottom:0;pointer-events:none;z-index:1;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.06) 0 2px,transparent 2px 30px);transform:rotateX(68deg) scale(1.5);transform-origin:top center;opacity:.4;-webkit-mask-image:linear-gradient(to bottom,transparent,rgba(0,0,0,.85) 35%,transparent);mask-image:linear-gradient(to bottom,transparent,rgba(0,0,0,.85) 35%,transparent)}"+
+      "#vignette{position:absolute;inset:0;pointer-events:none;z-index:3;background:radial-gradient(125% 95% at 50% 36%,transparent 55%,rgba(0,0,0,.4) 100%)}"+
+      ".sky,.sun,.cloud,#moon,#stars{will-change:transform}";
+    document.head.appendChild(st);
+    function mk(id){ var e=document.getElementById(id); if(!e){ e=document.createElement("div"); e.id=id; scene.appendChild(e); } return e; }
+    mk("nightVeil"); mk("waves3d"); var stars=mk("stars"); mk("moon"); mk("vignette");
+    stars.innerHTML="<i></i>"; stars.firstChild.style.boxShadow=__buildStars();
+    function px(nx,ny){ try{
+      var sky=document.querySelector(".sky"); if(sky) sky.style.transform="translate("+(nx*-5)+"px,"+(ny*-3)+"px) scale(1.04)";
+      document.querySelectorAll(".cloud").forEach(function(c,i){ c.style.transform="translate("+(nx*(-12-i*4))+"px,"+(ny*-6)+"px)"; });
+      var su=document.querySelector(".sun"); if(su) su.style.marginLeft=(-60+nx*-3)+"px";
+      var mo=document.getElementById("moon"); if(mo) mo.style.marginLeft=(nx*-3)+"px";
+      stars.style.transform="translate("+(nx*-4)+"px,"+(ny*-3)+"px)";
+    }catch(e){} }
+    window.addEventListener("pointermove", function(e){ px(e.clientX/innerWidth*2-1,e.clientY/innerHeight*2-1); }, {passive:true});
+    window.addEventListener("deviceorientation", function(e){ if(e.gamma==null) return; px(Math.max(-1,Math.min(1,e.gamma/30)),Math.max(-1,Math.min(1,(e.beta-40)/30))); }, {passive:true});
+    var hud=$("hud");
+    if(hud && !document.getElementById("clock")){ var c=document.createElement("div"); c.className="stat"; c.id="clock"; c.innerHTML="🌅 <b id='clockT'>06:00</b>"; var shop=document.getElementById("shopBtn"); hud.insertBefore(c, shop||null); }
+    clearInterval(window.__dn); window.__dn=setInterval(stepDayNight,250); stepDayNight();
+  }catch(e){}
+}
+function stepDayNight(){
+  try{
+    __dayT += 0.25/DAY_SECONDS; if(__dayT>=1) __dayT-=1;
+    var hour=__dayT*24;
+    var sky=document.querySelector(".sky");
+    if(sky){ var c=__skyAt(hour); sky.style.background="linear-gradient("+c[0]+" 0%,"+c[1]+" 46%,"+c[2]+" 100%)"; }
+    var b; if(hour<5)b=0; else if(hour<7)b=(hour-5)/2; else if(hour<18)b=1; else if(hour<20)b=(20-hour)/2; else b=0;
+    var nightF=1-b;
+    var sun=document.querySelector(".sun");
+    if(sun){ if(hour>=6 && hour<=18){ var p=(hour-6)/12; sun.style.left=(6+p*88)+"%"; sun.style.top=(46-Math.sin(p*Math.PI)*40)+"%"; sun.style.opacity=Math.max(0,Math.min(1,b)); } else sun.style.opacity="0"; }
+    var moon=document.getElementById("moon");
+    if(moon){ var mh=hour>=18?hour-18:hour+6, mp=mh/12; moon.style.left=(6+mp*88)+"%"; moon.style.top=(44-Math.sin(mp*Math.PI)*38)+"%"; moon.style.opacity=nightF.toFixed(2); }
+    var stars=document.getElementById("stars"); if(stars) stars.style.opacity=nightF.toFixed(2);
+    var veil=document.getElementById("nightVeil"); if(veil) veil.style.background="rgba(4,8,20,"+(nightF*0.55).toFixed(2)+")";
+    var ct=document.getElementById("clockT");
+    if(ct){ var hh=Math.floor(hour), mm=Math.floor((hour-hh)*60); ct.textContent=(hh<10?"0":"")+hh+":"+(mm<10?"0":"")+mm;
+      var em=hour<5?"🌙":hour<8?"🌅":hour<17?"☀️":hour<20?"🌆":"🌙"; var cl=document.getElementById("clock"); if(cl) cl.firstChild.textContent=em+" "; }
+  }catch(e){}
+}
+/* ===== кінець розширень ===== */
+
+function startFight(){
     clearTimeout(missTimer);
-    state="fighting"; current=pick(); progress=START;
+    state="fighting"; current=pick(); progress=START; if(tryHeavyFish()){return;}
     bobber.style.display="none";
     fight.style.display="block";
     btn.textContent="Вимотуй! 💪"; btn.className="btn pull"; btn.disabled=false;
@@ -520,16 +665,16 @@
   const eventOv=$("eventOv"), eventCard=$("eventCard");
   function closeEvent(){ eventOv.classList.remove("on"); eventCard.className="card"; eventCard.innerHTML=""; }
   function showTCK(){
-    state="event"; const canPay=P.coins>=100; eventCard.className="card";
+    state="event"; const canPay=true; eventCard.className="card";
     eventCard.innerHTML =
       '<div class="big siren">🚐</div><h2>ТЦК!!! Тебе бусифікували 🫡</h2>'+
       '<p>Поки ти спокійно рибалив, під’їхав бусик. Тепер ти всередині.</p>'+
       '<p style="margin-top:6px">Щоб вийти — «домовитись»: хабар <b style="color:var(--ink)">100 🪙</b>.<br>Зараз у тебе: <b style="color:var(--ink)">'+P.coins+' 🪙</b></p>'+
       '<button class="obtn pay" id="btnPay" '+(canPay?"":"disabled")+'>💵 Дати хабар — 100 🪙'+(canPay?"":" (не вистачає)")+'</button>'+
-      '<button class="obtn credit" id="btnCredit">🏦 Взяти кредит (і відкупитись)</button>';
+      '';
     eventOv.classList.add("on"); sfx.siren();
-    $("btnPay").onclick=()=>{ if(P.coins<100) return; P.coins-=100; refreshHud(); persist(); sfx.cash(); closeEvent(); showToast("Відкупився 😮‍💨"); readyToCast("Пронесло! Знову на воду 🎣"); };
-    $("btnCredit").onclick=()=>{ P.debt+=150; refreshHud(); persist(); sfx.cash(); closeEvent(); showToast("Кредит: винен банку "+P.debt+" 💸"); readyToCast("Вільний… але в боргах 🎣"); };
+    $("btnPay").onclick=()=>{ P.coins-=100; refreshHud(); persist(); sfx.cash(); closeEvent(); showToast(P.coins<0?"Відкупився, але вже в мінусі 😮‍💨":"Відкупився 😮‍💨"); readyToCast("Пронесло! Знову на воду 🎣"); };
+    
   }
   const slogans=[
     "☕ Кофейок в Валео — перша чашка вже чекає!",
@@ -619,7 +764,7 @@
     loginOv.classList.remove("on");
     $("hud").style.display="flex"; $("dock").style.display="flex";
     $("ava").textContent = (P.nick[0]||"🎣").toUpperCase();
-    refreshHud(); drawTackle(); idleSway(); readyToCast("Вітаю, "+P.nick+"! Закидай 🎣");
+    refreshHud(); drawTackle(); idleSway(); initExtras(); syncChatName(); readyToCast("Вітаю, "+P.nick+"! Закидай 🎣");
   }
   $("loginBtn").onclick=()=>{
     const nick=($("nickInput").value||"").trim() || "Рибалка";
@@ -679,11 +824,11 @@
 </div>
 
 <style>
-  #rybChat{position:fixed;right:16px;bottom:16px;z-index:99999;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  #rybChat{position:fixed;left:16px;bottom:16px;z-index:99999;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
   #rybChatToggle{width:52px;height:52px;border:1px solid rgba(74,168,255,.5);border-radius:50%;background:rgba(14,22,34,.85);color:#fff;font-size:24px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:transform .15s,box-shadow .2s}
   #rybChatToggle:hover{transform:scale(1.08);box-shadow:0 4px 18px rgba(0,0,0,.5),0 0 14px rgba(74,168,255,.35)}
   #rybUnread{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#f0a12e;color:#1a1208;font-size:11px;font-weight:700;line-height:18px;display:none}
-  #rybChatBox{position:absolute;right:0;bottom:64px;width:300px;max-width:calc(100vw - 32px);height:400px;max-height:calc(100vh - 110px);background:rgba(14,22,34,.92);border:1px solid rgba(255,255,255,.08);border-radius:14px;box-shadow:0 14px 44px rgba(0,0,0,.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;flex-direction:column;overflow:hidden;color:#eaf2f7}
+  #rybChatBox{position:absolute;left:0;bottom:64px;width:300px;max-width:calc(100vw - 32px);height:400px;max-height:calc(100vh - 110px);background:rgba(14,22,34,.92);border:1px solid rgba(255,255,255,.08);border-radius:14px;box-shadow:0 14px 44px rgba(0,0,0,.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;flex-direction:column;overflow:hidden;color:#eaf2f7}
   #rybChatHeader{background:rgba(255,255,255,.04);color:#eaf2f7;padding:11px 14px;font-weight:600;font-size:14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.07)}
   #rybChatHeader button{background:none;border:none;color:#8fa3b8;font-size:16px;cursor:pointer;line-height:1}
   #rybChatHeader button:hover{color:#eaf2f7}
@@ -746,6 +891,7 @@
     input.focus();
   }
   nameBtn.addEventListener("click", enterChat);
+  try{var __pr=JSON.parse(localStorage.getItem("rybalka_profile_v2")||"null");if(__pr&&__pr.nick){nameInput.value=__pr.nick;nick=__pr.nick;namePane.hidden=true;mainPane.hidden=false;}}catch(e){}
   nameInput.addEventListener("keydown", e => { if (e.key === "Enter") enterChat(); });
 
   // Відкрити / закрити
