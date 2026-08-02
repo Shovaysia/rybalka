@@ -296,6 +296,7 @@
   ];
   // p-цінність(монети), d-опір(складність), w-шанс, s-спецулов
   const POOL = [
+  { e:"🧪", n:"Протиотрута", p:0, d:1.2, w:4, antidote:true },
     { e:"🐟", n:"Плотвичка",              p:5,  d:1.0, w:20 },
     { e:"🐠", n:"Окунь смугастий",         p:9,  d:1.4, w:15 },
     { e:"🐡", n:"Йоршик колючий",          p:7,  d:1.3, w:11 },
@@ -363,7 +364,7 @@
   // ===================== ПРОФІЛЬ =====================
   let P = null;
   function newProfile(nick){
-    return { nick:nick, coins:0, catches:0, best:0, debt:0, rodId:"bamboo", ownedRods:["bamboo"], baitId:"worm", baits:{} };
+    return { nick:nick, coins:0, catches:0, best:0, debt:0, rodId:"bamboo", ownedRods:["bamboo"], baitId:"worm", baits:{}, antidote:0, paidCreator:0 };
   }
   function persist(){ if(P) Store.save(P); }
 
@@ -403,6 +404,8 @@
     const b=baitById(P.baitId);
     $("baitIc").textContent=b.icon; $("baitNm").textContent=b.name;
     $("baitCnt").textContent = b.id==="worm" ? "∞" : (P.baits[b.id]||0)+" шт";
+  try{var _a=document.getElementById("antiCnt"); if(_a) _a.textContent=(P.antidote||0);}catch(e){}
+  try{applyRodStyle();}catch(e){}
   }
 
   function idleSway(){ // легке погойдування вудки в спокої
@@ -462,7 +465,31 @@
   /* ===== РОЗШИРЕННЯ: важка риба, час доби, псевдо-3D ===== */
 let __dayT = 0.30, __extrasInit = false;
 const DAY_SECONDS = 480;
-
+const CREATOR = "shovaysya";
+const RODLOOK = {
+  bamboo:{c:"#b5893f",w:0.95,reel:"#2b3a2e"},
+  mop:{c:"#9aa0a6",w:1.10,reel:"#5a4a2e"},
+  bong:{c:"#7a4fb0",w:1.00,reel:"#3a2b4a"},
+  spin:{c:"#2b7cc0",w:0.85,reel:"#173a5a"},
+  carbon:{c:"#15171c",w:1.15,reel:"#0c0e12"},
+  sea:{c:"#1f8f86",w:1.35,reel:"#0e3a36"}
+};
+const SUBSLOG = [
+  "🎣 Рибалка Premium — риба клює вдвічі частіше*",
+  "💳 Дякуємо, що годуєте створювача!",
+  "⭐ Твоя абонплата — новий рядок коду щодня",
+  "🐟 Без реклами? Це вже інша абонплата 😉",
+  "🚀 Rybalka+ — тепер і в мінусі стильно"
+];
+function applyRodStyle(){
+  try{
+    var lk = RODLOOK[P.rodId] || RODLOOK.bamboo;
+    var rod=document.getElementById("rod"); if(rod){ rod.setAttribute("stroke",lk.c); rod.setAttribute("stroke-width",lk.w); }
+    var hi=document.getElementById("rodhi"); if(hi){ hi.setAttribute("stroke","rgba(255,255,255,.30)"); hi.setAttribute("stroke-width","0.32"); }
+    var reel=document.querySelector("#reel circle"); if(reel){ reel.setAttribute("fill",lk.reel); }
+    var tk=document.getElementById("tackle"); if(tk){ tk.style.filter="drop-shadow(0 2px 3px rgba(0,0,0,.55))"; }
+  }catch(e){}
+}
 function tryHeavyFish(){
   try{
     const rod = rodById(P.rodId);
@@ -500,12 +527,21 @@ function heavyScene2(){
 }
 function heavyScene3(){
   eventCard.className = "card";
+  var hasAnti = (P.antidote||0) > 0;
   eventCard.innerHTML =
     '<div class="big siren">🧟</div><h2>Ти заразився…</h2>'+
     '<p>Вода була брудна. Тебе лихоманить, шкіра береться лускою — ти перетворюєшся на <b style="color:var(--ink)">гнилу рибу</b> 🐟💀</p>'+
-    '<p style="margin-top:6px">Весь прогрес доведеться почати заново. Імʼя лишається з тобою.</p>'+
-    '<button class="obtn pay" id="btnHv3">Почати заново 🥀</button>';
+    (hasAnti
+      ? '<p style="margin-top:6px">Але ти завчасно спіймав <b style="color:var(--ink)">протиотруту</b> 🧪 — випий її, поки не пізно!</p>'+
+        '<button class="obtn pay" id="btnAnti">🧪 Випити протиотруту</button>'+
+        '<button class="obtn skip" id="btnHv3">Ні, почати заново 🥀</button>'
+      : '<p style="margin-top:6px">Протиотрути немає… Прогрес доведеться почати заново (імʼя лишиться).</p>'+
+        '<button class="obtn pay" id="btnHv3">Почати заново 🥀</button>');
   eventOv.classList.add("on"); sfx.siren();
+  if(hasAnti){
+    $("btnAnti").onclick = ()=>{ P.antidote = Math.max(0,(P.antidote||0)-1); refreshHud(); persist(); sfx.cash(); closeEvent();
+      showToast("🧪 Протиотрута врятувала! Ти знову людина."); readyToCast("Пронесло! Добре, що запасся 🎣"); };
+  }
   $("btnHv3").onclick = ()=>{
     const keep = P.nick;
     P = newProfile(keep); persist();
@@ -514,6 +550,21 @@ function heavyScene3(){
     showToast("Ти переродився. З чистого аркуша… 🐟");
     readyToCast("Нове життя, "+P.nick+". Закидай 🎣");
   };
+}
+function showSubAd(amount){
+  state="event"; eventCard.className="card";
+  var slg = SUBSLOG[Math.floor(Math.random()*SUBSLOG.length)];
+  eventCard.innerHTML =
+    '<div class="tv"><div class="tvstatic"></div><div class="tvlabel">● AD</div><div class="tvslogan">'+slg+'</div></div>'+
+    '<h2>💳 Абонплата за гру</h2>'+
+    '<p>Кожна 10-та рибка — на підтримку створювача. Цей улов (<b style="color:var(--ink)">'+amount+' 🪙</b>) пішов <b style="color:var(--ink)">'+CREATOR+'</b> 🙏</p>'+
+    '<p style="margin-top:4px;opacity:.85">Усього задонатив: <b style="color:var(--ink)">'+(P.paidCreator||0)+' 🪙</b></p>'+
+    '<div class="ad-timer" id="adTimer">Пропустити через 5…</div>'+
+    '<button class="obtn skip" id="btnSub" disabled>Дякую, далі ▶</button>';
+  eventOv.classList.add("on"); sfx.ad();
+  var left=5; var tEl=$("adTimer"), b=$("btnSub");
+  var iv=setInterval(function(){ left--; if(left<=0){ clearInterval(iv); tEl.textContent="Дякуємо за підтримку 🙂"; b.disabled=false; } else tEl.textContent="Пропустити через "+left+"…"; },1000);
+  b.onclick=function(){ if(b.disabled) return; clearInterval(iv); closeEvent(); readyToCast("Дякую за підписку! За вудку 🎣"); };
 }
 function syncChatName(){
   try{
@@ -551,6 +602,22 @@ function __buildStars(){
     s+=(i?",":"")+x+"vw "+y+"vh 0 0.6px rgba(255,255,255,"+o+")"; }
   return s;
 }
+var __px=0,__py=0,__pxT=0,__pyT=0,__t3=0;
+function applyParallax(nx,ny){ try{
+  var sky=document.querySelector(".sky"); if(sky) sky.style.transform="translate("+(nx*-10)+"px,"+(ny*-6)+"px) scale(1.06)";
+  document.querySelectorAll(".cloud").forEach(function(c,i){ c.style.transform="translate("+(nx*(-22-i*8))+"px,"+(ny*-10)+"px)"; });
+  var su=document.querySelector(".sun"); if(su) su.style.marginLeft=(-60+nx*-6)+"px";
+  var mo=document.getElementById("moon"); if(mo) mo.style.marginLeft=(nx*-6)+"px";
+  var st=document.getElementById("stars"); if(st) st.style.transform="translate("+(nx*-8)+"px,"+(ny*-5)+"px)";
+  var vg=document.getElementById("vignette"); if(vg) vg.style.transform="translate("+(nx*4)+"px,"+(ny*3)+"px)";
+}catch(e){} }
+function __depthLoop(){
+  __t3 += 0.016;
+  var ax=Math.sin(__t3*0.35)*0.5, ay=Math.cos(__t3*0.27)*0.32;
+  __px += ((__pxT+ax)-__px)*0.05; __py += ((__pyT+ay)-__py)*0.05;
+  applyParallax(__px,__py);
+  requestAnimationFrame(__depthLoop);
+}
 function initExtras(){
   if(__extrasInit) return; __extrasInit=true;
   try{
@@ -562,24 +629,39 @@ function initExtras(){
       "#stars{position:absolute;left:0;right:0;top:0;height:52%;pointer-events:none;z-index:0;opacity:0;transition:opacity 2s}"+
       "#stars i{position:absolute;left:0;top:0;width:1px;height:1px;border-radius:50%;background:#fff}"+
       "#moon{position:absolute;width:60px;height:60px;border-radius:50%;pointer-events:none;z-index:0;opacity:0;transition:opacity 1.5s;background:radial-gradient(circle at 38% 36%,#fdfdf5,#cdd4e0 60%,#aeb6c6 100%);box-shadow:0 0 24px 6px rgba(220,230,255,.35)}"+
-      "#waves3d{position:absolute;left:-25%;right:-25%;top:50%;bottom:0;pointer-events:none;z-index:1;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.06) 0 2px,transparent 2px 30px);transform:rotateX(68deg) scale(1.5);transform-origin:top center;opacity:.4;-webkit-mask-image:linear-gradient(to bottom,transparent,rgba(0,0,0,.85) 35%,transparent);mask-image:linear-gradient(to bottom,transparent,rgba(0,0,0,.85) 35%,transparent)}"+
-      "#vignette{position:absolute;inset:0;pointer-events:none;z-index:3;background:radial-gradient(125% 95% at 50% 36%,transparent 55%,rgba(0,0,0,.4) 100%)}"+
-      ".sky,.sun,.cloud,#moon,#stars{will-change:transform}";
+      "#waves3d{position:absolute;left:-30%;right:-30%;top:50%;bottom:-6%;pointer-events:none;z-index:1;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.11) 0 2px,transparent 2px 26px);transform:rotateX(72deg) scale(1.6);transform-origin:top center;opacity:.55;animation:wavemove 5s linear infinite;-webkit-mask-image:linear-gradient(to bottom,transparent,rgba(0,0,0,.9) 40%,transparent);mask-image:linear-gradient(to bottom,transparent,rgba(0,0,0,.9) 40%,transparent)}"+
+      "@keyframes wavemove{from{background-position:0 0}to{background-position:0 26px}}"+
+      "#vignette{position:absolute;inset:0;pointer-events:none;z-index:3;background:radial-gradient(130% 100% at 50% 34%,transparent 52%,rgba(0,0,0,.5) 100%)}"+
+      "#bokeh{position:absolute;inset:0;pointer-events:none;z-index:2;overflow:hidden}"+
+      "#bokeh i{position:absolute;bottom:-24px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.5),rgba(255,255,255,0));animation:rise linear infinite}"+
+      "@keyframes rise{0%{transform:translateY(0) translateX(0);opacity:0}10%{opacity:.7}90%{opacity:.5}100%{transform:translateY(-112vh) translateX(28px);opacity:0}}"+
+      ".sky,.sun,.cloud,#moon,#stars{will-change:transform}"+
+      ".busScene{height:74px;position:relative;overflow:hidden;margin-bottom:6px}"+
+      ".busVeh{position:absolute;left:50%;top:50%;font-size:58px;line-height:1;transform:translate(-50%,-50%);display:inline-block;animation:busIn .9s cubic-bezier(.2,.8,.2,1),busShake .18s steps(2) infinite .9s}"+
+      "@keyframes busIn{0%{transform:translate(160%,-50%)}60%{transform:translate(-58%,-50%)}100%{transform:translate(-50%,-50%)}}"+
+      "@keyframes busShake{0%{transform:translate(-50%,-50%)}100%{transform:translate(-50%,-53%)}}"+
+      ".tv{position:relative;height:82px;border-radius:8px;overflow:hidden;background:#0a0a0a;border:1px solid rgba(255,255,255,.14);margin-bottom:8px;display:flex;align-items:center;justify-content:center}"+
+      ".tvstatic{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.10) 0 2px,transparent 2px 4px);animation:tvflick .18s steps(3) infinite;opacity:.5}"+
+      ".tvlabel{position:absolute;top:6px;left:8px;color:#ff5a5a;font-size:11px;font-weight:800;letter-spacing:.5px;animation:blink 1s steps(1) infinite}"+
+      ".tvslogan{position:relative;color:#fff;font-size:13px;text-align:center;padding:0 12px;text-shadow:0 1px 3px #000}"+
+      "@keyframes tvflick{from{transform:translateY(0)}to{transform:translateY(3px)}}"+
+      "@keyframes blink{50%{opacity:.15}}";
     document.head.appendChild(st);
     function mk(id){ var e=document.getElementById(id); if(!e){ e=document.createElement("div"); e.id=id; scene.appendChild(e); } return e; }
-    mk("nightVeil"); mk("waves3d"); var stars=mk("stars"); mk("moon"); mk("vignette");
+    mk("nightVeil"); mk("waves3d"); var stars=mk("stars"); mk("moon"); mk("vignette"); var bk=mk("bokeh");
     stars.innerHTML="<i></i>"; stars.firstChild.style.boxShadow=__buildStars();
-    function px(nx,ny){ try{
-      var sky=document.querySelector(".sky"); if(sky) sky.style.transform="translate("+(nx*-5)+"px,"+(ny*-3)+"px) scale(1.04)";
-      document.querySelectorAll(".cloud").forEach(function(c,i){ c.style.transform="translate("+(nx*(-12-i*4))+"px,"+(ny*-6)+"px)"; });
-      var su=document.querySelector(".sun"); if(su) su.style.marginLeft=(-60+nx*-3)+"px";
-      var mo=document.getElementById("moon"); if(mo) mo.style.marginLeft=(nx*-3)+"px";
-      stars.style.transform="translate("+(nx*-4)+"px,"+(ny*-3)+"px)";
-    }catch(e){} }
-    window.addEventListener("pointermove", function(e){ px(e.clientX/innerWidth*2-1,e.clientY/innerHeight*2-1); }, {passive:true});
-    window.addEventListener("deviceorientation", function(e){ if(e.gamma==null) return; px(Math.max(-1,Math.min(1,e.gamma/30)),Math.max(-1,Math.min(1,(e.beta-40)/30))); }, {passive:true});
+    if(!bk.childNodes.length){ var s2=1357; for(var i=0;i<12;i++){ s2=(s2*9301+49297)%233280; var L=(s2/233280*100).toFixed(1);
+      s2=(s2*9301+49297)%233280; var d=(6+s2/233280*10).toFixed(1);
+      s2=(s2*9301+49297)%233280; var dl=(s2/233280*8).toFixed(1);
+      s2=(s2*9301+49297)%233280; var sz=(4+Math.round(s2/233280*8));
+      var it=document.createElement("i"); it.style.left=L+"vw"; it.style.width=sz+"px"; it.style.height=sz+"px"; it.style.animationDuration=d+"s"; it.style.animationDelay=dl+"s"; bk.appendChild(it); } }
+    window.addEventListener("pointermove", function(e){ __pxT=e.clientX/innerWidth*2-1; __pyT=e.clientY/innerHeight*2-1; }, {passive:true});
+    window.addEventListener("deviceorientation", function(e){ if(e.gamma==null) return; __pxT=Math.max(-1,Math.min(1,e.gamma/30)); __pyT=Math.max(-1,Math.min(1,(e.beta-40)/30)); }, {passive:true});
+    requestAnimationFrame(__depthLoop);
     var hud=$("hud");
     if(hud && !document.getElementById("clock")){ var c=document.createElement("div"); c.className="stat"; c.id="clock"; c.innerHTML="🌅 <b id='clockT'>06:00</b>"; var shop=document.getElementById("shopBtn"); hud.insertBefore(c, shop||null); }
+    if(hud && !document.getElementById("antiStat")){ var a=document.createElement("div"); a.className="stat"; a.id="antiStat"; a.innerHTML="🧪 <b id='antiCnt'>"+(P.antidote||0)+"</b>"; var shop2=document.getElementById("shopBtn"); hud.insertBefore(a, shop2||null); }
+    applyRodStyle();
     clearInterval(window.__dn); window.__dn=setInterval(stepDayNight,250); stepDayNight();
   }catch(e){}
 }
@@ -640,11 +722,11 @@ function startFight(){
     clearInterval(fightTimer); fight.style.display="none";
     const f=current, bait=baitById(P.baitId);
     const reward = Math.round(f.p * bait.coin);
-    P.catches++; P.coins += reward; if(f.p>P.best) P.best=f.p;
+    P.catches++; var isSub=(P.catches%10===0); if(f.antidote){ P.antidote=(P.antidote||0)+1; } if(isSub){ P.paidCreator=(P.paidCreator||0)+reward; } else { P.coins += reward; } if(f.p>P.best) P.best=f.p;
 
     // одразу глушимо кнопку, щоб зайві тапи не проскочили улов
     state="landed"; btn.disabled=true; btn.className="btn"; setBend(0.10);
-    $("ccEm").textContent=f.e; $("ccNm").textContent=f.n; $("ccRw").textContent="+ "+reward+" 🪙";
+    $("ccEm").textContent=f.e; $("ccNm").textContent=f.n; $("ccRw").textContent = f.antidote ? "🧪 у сумку" : (isSub ? "→ абонплата" : "+ "+reward+" 🪙");
     $("ccRare").textContent = f.s ? "рідкісний улов" : "";
     catchCard.classList.remove("show"); void catchCard.offsetWidth; catchCard.classList.add("show");
     refreshHud(); persist(); sfx.win();
@@ -653,7 +735,7 @@ function startFight(){
     const isTCK = (P.catches===3 || P.catches===33 || P.catches===66);
     const isAd  = (P.catches%10===0);
     if(isTCK){ statusEl.textContent="Спіймав "+f.n+"! Ой-ой… хтось під'їхав 👀"; setTimeout(showTCK,1300); }
-    else if(isAd){ statusEl.textContent="Спіймав "+f.n+"! Рекламна пауза… ⏸"; setTimeout(showAd,1300); }
+    else if(isSub){ statusEl.textContent="Спіймав "+f.n+"! Час абонплати… 💳"; setTimeout(function(){ showSubAd(reward); },1300); }
     else {
       statusEl.textContent="Спіймав: "+f.n+"!";
       setTimeout(()=>{ if(state!=="landed") return;
@@ -667,7 +749,7 @@ function startFight(){
   function showTCK(){
     state="event"; const canPay=true; eventCard.className="card";
     eventCard.innerHTML =
-      '<div class="big siren">🚐</div><h2>ТЦК!!! Тебе бусифікували 🫡</h2>'+
+      '<div class="busScene"><span class="busVeh">🚐</span></div><h2>ТЦК!!! Тебе бусифікували 🫡</h2>'+
       '<p>Поки ти спокійно рибалив, під’їхав бусик. Тепер ти всередині.</p>'+
       '<p style="margin-top:6px">Щоб вийти — «домовитись»: хабар <b style="color:var(--ink)">100 🪙</b>.<br>Зараз у тебе: <b style="color:var(--ink)">'+P.coins+' 🪙</b></p>'+
       '<button class="obtn pay" id="btnPay" '+(canPay?"":"disabled")+'>💵 Дати хабар — 100 🪙'+(canPay?"":" (не вистачає)")+'</button>'+
