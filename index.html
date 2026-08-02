@@ -636,10 +636,10 @@ function initExtras(){
       "#bokeh i{position:absolute;bottom:-24px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.5),rgba(255,255,255,0));animation:rise linear infinite}"+
       "@keyframes rise{0%{transform:translateY(0) translateX(0);opacity:0}10%{opacity:.7}90%{opacity:.5}100%{transform:translateY(-112vh) translateX(28px);opacity:0}}"+
       ".sky,.sun,.cloud,#moon,#stars{will-change:transform}"+
-      ".busScene{height:74px;position:relative;overflow:hidden;margin-bottom:6px}"+
-      ".busVeh{position:absolute;left:50%;top:50%;font-size:58px;line-height:1;transform:translate(-50%,-50%);display:inline-block;animation:busIn .9s cubic-bezier(.2,.8,.2,1),busShake .18s steps(2) infinite .9s}"+
-      "@keyframes busIn{0%{transform:translate(160%,-50%)}60%{transform:translate(-58%,-50%)}100%{transform:translate(-50%,-50%)}}"+
-      "@keyframes busShake{0%{transform:translate(-50%,-50%)}100%{transform:translate(-50%,-53%)}}"+
+      ".busScene{height:78px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:6px}"+
+      ".busVeh{font-size:56px;line-height:1;display:inline-block;animation:busIn .9s cubic-bezier(.2,.8,.2,1),busShake .18s steps(2) infinite .9s}"+
+      "@keyframes busIn{0%{transform:translateX(175%)}60%{transform:translateX(-8%)}100%{transform:translateX(0)}}"+
+      "@keyframes busShake{0%{transform:translateY(0)}100%{transform:translateY(-3px)}}"+
       ".tv{position:relative;height:82px;border-radius:8px;overflow:hidden;background:#0a0a0a;border:1px solid rgba(255,255,255,.14);margin-bottom:8px;display:flex;align-items:center;justify-content:center}"+
       ".tvstatic{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.10) 0 2px,transparent 2px 4px);animation:tvflick .18s steps(3) infinite;opacity:.5}"+
       ".tvlabel{position:absolute;top:6px;left:8px;color:#ff5a5a;font-size:11px;font-weight:800;letter-spacing:.5px;animation:blink 1s steps(1) infinite}"+
