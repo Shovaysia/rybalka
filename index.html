@@ -360,7 +360,7 @@
     const g=c.createGain(); g.gain.value=vol||.3; s.connect(f).connect(g).connect(c.destination); s.start(); }
   const sfx = {
     cast(){ noise(.3,.25,800); beep(180,.2,"sine",.14,.02); },
-    bite(){ const P=[1318.5,1975,2637]; for(let k=0;k<5;k++){ const d=k*0.085; P.forEach((f,i)=>beep(f*(k%2?1.012:1), .14, "sine", .15/(i+1), d)); } },
+    bite(){ const f0=2000, R=[1,2.02,2.74,3.76,5.12], V=[1,.6,.4,.28,.16], S=[0,0.09,0.19,0.31], SV=[1,.78,.58,.42]; S.forEach((d,s)=>{ R.forEach((r,i)=>beep(f0*r*(i?1.004:1), 0.55-i*0.06, i<2?"sine":"triangle", 0.16*V[i]*SV[s], d)); }); },
     reel(){ beep(150+Math.min(progress,100)*5,.05,"square",.12); },
     win(){ [523,659,784,1046].forEach((f,i)=>beep(f,.14,"triangle",.2,i*.09)); },
     fail(){ slide(380,80,.5,"sawtooth",.2); },
