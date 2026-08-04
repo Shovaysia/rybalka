@@ -297,37 +297,46 @@
   // p-цінність(монети), d-опір(складність), w-шанс, s-спецулов
   const POOL = [
   { e:"🧪", n:"Протиотрута", p:0, d:1.2, w:4, antidote:true },
-    { e:"🐟", n:"Плотвичка",              p:5,  d:1.0, w:20 },
-    { e:"🐠", n:"Окунь смугастий",         p:9,  d:1.4, w:15 },
-    { e:"🐡", n:"Йоршик колючий",          p:7,  d:1.3, w:11 },
-    { e:"🦀", n:"Рак-забіяка",             p:12, d:1.8, w:7  },
-    { e:"🐍", n:"Вугор слизький",          p:15, d:2.1, w:5  },
-    { e:"🦐", n:"Креветка з Нової Пошти",  p:6,  d:1.1, w:7  },
-    { e:"🐸", n:"Жабеня-огидко",           p:4,  d:1.1, w:7  },
-    { e:"🦑", n:"Кальмар (заблукав)",      p:16, d:2.0, w:4  },
-    { e:"👢", n:"Старий чобіт",            p:2,  d:0.9, w:11 },
-    { e:"🥫", n:"Іржава банка",            p:1,  d:0.8, w:9  },
-    { e:"🧦", n:"Друга шкарпетка (пара!)", p:3,  d:1.0, w:6  },
-    { e:"📱", n:"Nokia 3310 (жива!)",      p:22, d:1.6, w:4  },
-    { e:"🛴", n:"Самокат Bolt",            p:18, d:2.0, w:4  },
-    { e:"🔑", n:"Чужі ключі від хати",     p:5,  d:1.2, w:6  },
-    { e:"🦆", n:"Гумовий каченя",          p:8,  d:1.0, w:6  },
-    { e:"🩴", n:"Одна в'єтнамка",          p:3,  d:0.9, w:6  },
-    { e:"💾", n:"Флешка з 'домашкою'",     p:10, d:1.3, w:5  },
-    { e:"🛒", n:"Візок з АТБ",             p:14, d:2.0, w:3  },
-    { e:"🧲", n:"Улов на магніт",          p:9,  d:1.4, w:4  },
-    { e:"🕶️", n:"Ray-Ban (репліка з ринку)", p:11, d:1.5, w:4 },
-    { e:"🦴", n:"Чиясь кістка",            p:6,  d:1.2, w:5  },
-    { e:"👑", n:"Корона з випускного",     p:13, d:1.7, w:3  },
-    { e:"🧸", n:"Мокрий плюшевий ведмідь", p:7,  d:1.2, w:5  },
-    { e:"🧭", n:"Патч Stone Island",       p:60, d:2.9, w:3, s:true },
-    { e:"🦠", n:"Гепатит В",               p:45, d:3.0, w:3, s:true },
-    { e:"🌿", n:"Закладка «3г шиш»",        p:70, d:3.3, w:2, s:true },
-    { e:"🪄", n:"Паличка Гаррі Поттера",   p:85, d:3.6, w:2, s:true },
-    { e:"🍺", n:"Пиво біля фонтану",       p:40, d:2.7, w:3, s:true },
-    { e:"☕", n:"Кофейок в Валео",         p:35, d:2.7, w:3, s:true },
-    { e:"🍕", n:"Піца селянська",          p:50, d:3.1, w:3, s:true },
-  ];
+  { e:"🐟", n:"Карась", p:6, d:1.1, w:22 },
+  { e:"🐟", n:"Плітка", p:5, d:1.0, w:20 },
+  { e:"🐠", n:"Окунь смугастий", p:9, d:1.4, w:16 },
+  { e:"🐠", n:"Краснопірка", p:7, d:1.2, w:14 },
+  { e:"🐟", n:"Верховодка", p:4, d:0.9, w:14 },
+  { e:"🐡", n:"Йорж колючий", p:7, d:1.3, w:12 },
+  { e:"🐟", n:"Лящ", p:11, d:1.6, w:12 },
+  { e:"🐡", n:"Бичок", p:6, d:1.2, w:11 },
+  { e:"🐟", n:"Оселедець", p:10, d:1.3, w:10 },
+  { e:"🐟", n:"Лин", p:12, d:1.7, w:9 },
+  { e:"🐟", n:"Короп дзеркальний", p:16, d:1.9, w:9 },
+  { e:"🐠", n:"Скумбрія", p:14, d:1.6, w:8 },
+  { e:"🐠", n:"Судак", p:18, d:2.0, w:8 },
+  { e:"🐟", n:"Форель райдужна", p:20, d:1.8, w:7 },
+  { e:"🐠", n:"Щука зубата", p:22, d:2.2, w:7 },
+  { e:"🐟", n:"Минь", p:13, d:1.6, w:7 },
+  { e:"🐟", n:"Камбала", p:17, d:1.7, w:6 },
+  { e:"🐍", n:"Вугор слизький", p:15, d:2.1, w:6 },
+  { e:"🦐", n:"Креветка", p:6, d:1.1, w:9 },
+  { e:"🦀", n:"Краб-забіяка", p:12, d:1.8, w:7 },
+  { e:"🦞", n:"Рак річковий", p:12, d:1.8, w:7 },
+  { e:"🪼", n:"Медуза", p:3, d:1.0, w:6 },
+  { e:"🐙", n:"Восьминіг", p:24, d:2.3, w:4 },
+  { e:"🦑", n:"Кальмар", p:16, d:2.0, w:5 },
+  { e:"🐢", n:"Черепаха", p:20, d:2.2, w:3 },
+  { e:"🐟", n:"Сом вусатий", p:28, d:2.4, w:5 },
+  { e:"👢", n:"Старий чобіт", p:2, d:0.9, w:3 },
+  { e:"🥫", n:"Іржава банка", p:1, d:0.8, w:2 },
+  { e:"🛒", n:"Візок з АТБ", p:14, d:2.0, w:2 },
+  { e:"🐟", n:"Лосось балтійський", p:45, d:2.6, w:3, s:true },
+  { e:"🐟", n:"Тунець", p:55, d:2.8, w:3, s:true },
+  { e:"🐟", n:"Осетр із ікрою", p:70, d:3.0, w:2, s:true },
+  { e:"🐬", n:"Дельфін-друзяка", p:60, d:2.9, w:2, s:true },
+  { e:"🦈", n:"Акула!", p:90, d:3.5, w:2, s:true },
+  { e:"🐋", n:"Кит (як ти його витяг?!)", p:120, d:3.8, w:1, s:true },
+  { e:"🪄", n:"Паличка Гаррі Поттера", p:85, d:3.6, w:2, s:true },
+  { e:"🍺", n:"Пиво біля фонтану", p:40, d:2.7, w:2, s:true },
+  { e:"🍕", n:"Піца селянська", p:50, d:3.1, w:2, s:true },
+  { e:"📱", n:"Nokia 3310 (жива!)", p:22, d:1.6, w:2, s:true }
+];
 
   const $ = id => document.getElementById(id);
   const rodById = id => RODS.find(r=>r.id===id) || RODS[0];
@@ -645,7 +654,7 @@ function initExtras(){
       ".tvlabel{position:absolute;top:6px;left:8px;color:#ff5a5a;font-size:11px;font-weight:800;letter-spacing:.5px;animation:blink 1s steps(1) infinite}"+
       ".tvslogan{position:relative;color:#fff;font-size:13px;text-align:center;padding:0 12px;text-shadow:0 1px 3px #000}"+
       "@keyframes tvflick{from{transform:translateY(0)}to{transform:translateY(3px)}}"+
-      "@keyframes blink{50%{opacity:.15}}";
+      "@keyframes blink{50%{opacity:.15}}"+"#seaFx{position:absolute;inset:0;pointer-events:none;overflow:hidden}#seaFx .wv{position:absolute;left:-25%;right:-25%;top:0;bottom:0;mix-blend-mode:screen;will-change:transform}#seaFx .wv1{background:repeating-linear-gradient(94deg,transparent 0 20px,rgba(255,255,255,.06) 20px 22px,transparent 22px 44px);animation:wvA 9s linear infinite}#seaFx .wv2{background:repeating-linear-gradient(86deg,transparent 0 34px,rgba(190,220,240,.05) 34px 37px,transparent 37px 70px);animation:wvB 14s linear infinite;opacity:.8}#seaFx .wv3{background:repeating-linear-gradient(90deg,transparent 0 70px,rgba(255,255,255,.04) 70px 74px,transparent 74px 150px);animation:wvA 22s linear infinite;opacity:.6}@keyframes wvA{from{transform:translateX(0)}to{transform:translateX(-44px)}}@keyframes wvB{from{transform:translateX(0)}to{transform:translateX(52px)}}#seaSwell{position:absolute;inset:0;pointer-events:none;animation:swell 7s ease-in-out infinite alternate}@keyframes swell{from{transform:translateY(0) scaleY(1)}to{transform:translateY(-4px) scaleY(1.015)}}#seaGlow{position:absolute;left:0;right:0;top:0;height:22%;background:linear-gradient(rgba(255,240,214,.16),rgba(255,240,214,0));pointer-events:none}.sea{background:linear-gradient(#4d6b83 0%,#33566e 18%,#20415a 45%,#12293a 72%,#0b1c2a 100%)}";
     document.head.appendChild(st);
     function mk(id){ var e=document.getElementById(id); if(!e){ e=document.createElement("div"); e.id=id; scene.appendChild(e); } return e; }
     mk("nightVeil"); mk("waves3d"); var stars=mk("stars"); mk("moon"); mk("vignette"); var bk=mk("bokeh");
@@ -658,6 +667,7 @@ function initExtras(){
     window.addEventListener("pointermove", function(e){ __pxT=e.clientX/innerWidth*2-1; __pyT=e.clientY/innerHeight*2-1; }, {passive:true});
     window.addEventListener("deviceorientation", function(e){ if(e.gamma==null) return; __pxT=Math.max(-1,Math.min(1,e.gamma/30)); __pyT=Math.max(-1,Math.min(1,(e.beta-40)/30)); }, {passive:true});
     requestAnimationFrame(__depthLoop);
+    try{ var sea=document.querySelector(".sea"); if(sea && !document.getElementById("seaFx")){ var glow=document.createElement("div"); glow.id="seaGlow"; sea.appendChild(glow); var fx=document.createElement("div"); fx.id="seaFx"; var sw=document.createElement("div"); sw.id="seaSwell"; sw.innerHTML='<div class="wv wv1"></div><div class="wv wv2"></div><div class="wv wv3"></div>'; fx.appendChild(sw); sea.appendChild(fx); } }catch(e){}
     var hud=$("hud");
     if(hud && !document.getElementById("clock")){ var c=document.createElement("div"); c.className="stat"; c.id="clock"; c.innerHTML="🌅 <b id='clockT'>06:00</b>"; var shop=document.getElementById("shopBtn"); hud.insertBefore(c, shop||null); }
     if(hud && !document.getElementById("antiStat")){ var a=document.createElement("div"); a.className="stat"; a.id="antiStat"; a.innerHTML="🧪 <b id='antiCnt'>"+(P.antidote||0)+"</b>"; var shop2=document.getElementById("shopBtn"); hud.insertBefore(a, shop2||null); }
