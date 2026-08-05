@@ -1054,8 +1054,8 @@ try{
   renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=0.42;
   var cv=renderer.domElement; cv.id='glwater'; cv.style.cssText='position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none';
   var scn=document.getElementById('scene')||document.body; scn.insertBefore(cv, scn.firstChild);
-  var water=new Water(new THREE.PlaneGeometry(30000,30000), { textureWidth:512, textureHeight:512, waterNormals:mkNormals(256), sunDirection:new THREE.Vector3(), sunColor:0xffffff, waterColor:0x0d4a68, distortionScale:4.0, fog:false });
-  water.rotation.x=-Math.PI/2; scene.add(water); water.material.uniforms['size'].value=5.0;
+  var water=new Water(new THREE.PlaneGeometry(30000,30000), { textureWidth:512, textureHeight:512, waterNormals:mkNormals(256), sunDirection:new THREE.Vector3(), sunColor:0xffffff, waterColor:0x105572, distortionScale:4.0, fog:false });
+  water.rotation.x=-Math.PI/2; scene.add(water); water.material.uniforms['size'].value=5.0; (function(){ var m=water.material; var fs=m.fragmentShader; var A='float reflectance = rf0 + ( 1.0 - rf0 ) * pow( ( 1.0 - theta ), 5.0 );'; if(fs.indexOf(A)>=0){ fs=fs.replace(A, A+' reflectance = min( reflectance, 0.5 );'); } fs=fs.split('reflectionSample * 0.9').join('mix( reflectionSample, waterColor, 0.55 ) * 0.9'); m.fragmentShader=fs; m.needsUpdate=true; })();
   var sky=new Sky(); sky.scale.setScalar(20000); scene.add(sky);
   var sun=new THREE.Vector3(); var U=sky.material.uniforms;
   U['turbidity'].value=0.8; U['rayleigh'].value=3; U['mieCoefficient'].value=0.003; U['mieDirectionalG'].value=0.85;
