@@ -672,7 +672,7 @@ function initExtras(){
     if(hud && !document.getElementById("clock")){ var c=document.createElement("div"); c.className="stat"; c.id="clock"; c.innerHTML="🌅 <b id='clockT'>06:00</b>"; var shop=document.getElementById("shopBtn"); hud.insertBefore(c, shop||null); }
     if(hud && !document.getElementById("antiStat")){ var a=document.createElement("div"); a.className="stat"; a.id="antiStat"; a.innerHTML="🧪 <b id='antiCnt'>"+(P.antidote||0)+"</b>"; var shop2=document.getElementById("shopBtn"); hud.insertBefore(a, shop2||null); }
     applyRodStyle();
-    initWaves3D(); clearInterval(window.__dn); window.__dn=setInterval(stepDayNight,250); stepDayNight(); try{ if(typeof P!=="undefined"&&P&&P.stink>0&&window._stinkOn) window._stinkOn(); }catch(e){}
+    initWaves3D(); clearInterval(window.__dn); window.__dn=setInterval(stepDayNight,250); stepDayNight(); try{ initSimHud(); }catch(e){} try{ if(typeof P!=="undefined"&&P&&P.stink>0&&window._stinkOn) window._stinkOn(); }catch(e){}
   }catch(e){}
 }
 function initWaves3D(){ try{ var sea=document.querySelector(".sea"); if(!sea||document.getElementById("waveCanvas")) return; var cv=document.createElement("canvas"); cv.id="waveCanvas"; sea.insertBefore(cv, sea.firstChild); var ctx=cv.getContext("2d"); function rs(){ var r=sea.getBoundingClientRect(); cv.width=Math.max(2,Math.floor(r.width)); cv.height=Math.max(2,Math.floor(r.height)); } rs(); window.addEventListener("resize", rs, {passive:true}); var st=null; function frame(ts){ if(st==null) st=ts; var tm=(ts-st)/1000; var W=cv.width,H=cv.height; ctx.clearRect(0,0,W,H); var ROWS=44, step=Math.max(6,Math.floor(W/80)); for(var i=0;i<ROWS;i++){ var t0=i/ROWS, y0=Math.pow(t0,1.8)*H, amp=1.5+t0*t0*24; var cr=Math.round(10+36*t0), cg=Math.round(32+66*t0), cb=Math.round(52+78*t0); var xs=[],ys=[]; for(var x=-step;x<=W+step;x+=step){ var h=Math.sin(x*(0.012+t0*0.006)+i*0.55-tm*(0.7+t0*1.7))*amp + Math.sin(x*0.03+i*0.9-tm*2.3)*amp*0.34; xs.push(x); ys.push(y0-h); } ctx.beginPath(); ctx.moveTo(xs[0],ys[0]); for(var k=1;k<xs.length;k++) ctx.lineTo(xs[k],ys[k]); ctx.lineTo(W+step,H); ctx.lineTo(-step,H); ctx.closePath(); ctx.fillStyle="rgb("+cr+","+cg+","+cb+")"; ctx.fill(); ctx.beginPath(); ctx.moveTo(xs[0],ys[0]); for(var k2=1;k2<xs.length;k2++) ctx.lineTo(xs[k2],ys[k2]); ctx.strokeStyle="rgba("+Math.min(255,cr+70)+","+Math.min(255,cg+80)+","+Math.min(255,cb+80)+",0.42)"; ctx.lineWidth=1.1; ctx.stroke(); } requestAnimationFrame(frame); } requestAnimationFrame(frame); }catch(e){} }
@@ -682,6 +682,57 @@ function _startFlyAnim(){ var fc=document.getElementById('flies'); if(!fc) retur
 function _stopFlyAnim(){ if(_flyRAF){ cancelAnimationFrame(_flyRAF); _flyRAF=null; } }
 window._stinkOn=function(){ try{ var scn=document.getElementById('scene')||document.body; if(!document.getElementById('flies')){ var fc=document.createElement('div'); fc.id='flies'; for(var i=0;i<9;i++){ var fl=document.createElement('div'); fl.className='fly'; fl.textContent='🪰'; fc.appendChild(fl); } scn.appendChild(fc); } if(!document.getElementById('stinkBadge')){ var b=document.createElement('div'); b.id='stinkBadge'; b.textContent='🤢💨'; scn.appendChild(b); } _startFlyAnim(); }catch(e){} };
 window._stinkOff=function(){ try{ _stopFlyAnim(); var fc=document.getElementById('flies'); if(fc) fc.remove(); var b=document.getElementById('stinkBadge'); if(b) b.remove(); }catch(e){} };
+function initSimHud(){
+  if(document.getElementById('simTourney')) return;
+  var css=document.createElement('style'); css.id='simHudCss';
+  css.textContent='#simTourney{position:fixed;top:54px;right:14px;width:250px;z-index:7;font-family:var(--font,system-ui);color:#eef2f6;pointer-events:none}#simTourney .thead{display:flex;justify-content:space-between;align-items:center;background:linear-gradient(180deg,rgba(20,26,34,.92),rgba(16,22,30,.92));border:1px solid rgba(255,255,255,.08);border-radius:10px 10px 0 0;padding:8px 11px}#simTourney .rnd{font-size:12px;font-weight:700;letter-spacing:.3px;opacity:.95}#simTourney .rnd .clk{opacity:.7;font-weight:600;margin-left:2px}#simTourney .champ{text-align:right;font-size:10px;line-height:1.15;letter-spacing:1.5px;opacity:.55;text-transform:uppercase}#simTourney .lb{background:rgba(12,17,23,.9);border-left:1px solid rgba(255,255,255,.08);border-right:1px solid rgba(255,255,255,.08)}#simTourney .row{display:flex;align-items:center;gap:8px;padding:8px 11px;border-top:1px solid rgba(255,255,255,.05);font-size:12.5px}#simTourney .row.me{background:linear-gradient(90deg,rgba(240,200,60,.16),rgba(240,200,60,.02))}#simTourney .row .rk{width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex:0 0 auto}#simTourney .row.me .rk{background:#f0c83c;color:#1a1206}#simTourney .row .nm{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.92}#simTourney .row .wt{font-weight:700;font-variant-numeric:tabular-nums}#simTourney .cur{display:flex;justify-content:space-between;align-items:center;background:linear-gradient(180deg,rgba(20,26,34,.92),rgba(14,19,26,.95));border:1px solid rgba(255,255,255,.08);border-top:none;border-radius:0 0 10px 10px;padding:9px 11px;position:relative}#simTourney .cur::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;background:#f0c83c;border-radius:2px}#simTourney .cur .lab{font-size:10px;letter-spacing:1.5px;opacity:.6;text-transform:uppercase}#simTourney .cur .val{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}#simDial{position:fixed;left:16px;bottom:94px;z-index:7;display:flex;align-items:flex-end;gap:12px;pointer-events:none;font-family:var(--font,system-ui);color:#eef2f6}#simDial .gauge{position:relative;width:104px;height:104px}#simDial svg{transform:rotate(-90deg)}#simDial .gnum{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;text-shadow:0 1px 3px rgba(0,0,0,.6)}#simDial .gbadge{position:absolute;top:8px;right:6px;background:#12181f;border:1px solid rgba(255,255,255,.15);border-radius:6px;font-size:11px;font-weight:700;padding:1px 6px}#simDial .rd{display:flex;flex-direction:column;gap:6px;margin-bottom:8px;font-size:13px;text-shadow:0 1px 3px rgba(0,0,0,.7)}#simDial .rd b{font-variant-numeric:tabular-nums}#simDial .rd .mut{opacity:.6}';
+  document.head.appendChild(css);
+  var scn=document.getElementById('scene')||document.body;
+  var t=document.createElement('div'); t.id='simTourney';
+  t.innerHTML='<div class="thead"><div class="rnd">Раунд 1 <span class="clk" id="simClk">⏱ 15:00</span></div><div class="champ">Рейн-Веллі<br>Чемпіонат</div></div><div class="lb" id="simLB"></div><div class="cur"><div class="lab">Поточний</div><div class="val" id="simCur">0,00 кг</div></div>';
+  scn.appendChild(t);
+  var d=document.createElement('div'); d.id='simDial';
+  d.innerHTML='<div class="gauge"><svg width="104" height="104" viewBox="0 0 104 104"><circle cx="52" cy="52" r="46" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="6"/><circle id="simArc" cx="52" cy="52" r="46" fill="none" stroke="#f0c83c" stroke-width="6" stroke-linecap="round" stroke-dasharray="289" stroke-dashoffset="200"/></svg><div class="gnum">35</div><div class="gbadge">5</div></div><div class="rd"><div>🎯 <b id="simDist">41</b> <span class="mut">м</span></div><div>📏 <b id="simDepth">2.5</b><span class="mut" id="simDepth2"> / 4.3 м</span></div></div>';
+  scn.appendChild(d);
+  var meNick=(window.P&&P.nick)||'Ти';
+  var comps=[{nm:'Thomas Samuel',w:15+Math.random()*8},{nm:'Sam Childs',w:12+Math.random()*7},{nm:'Іван Кльов',w:9+Math.random()*6}];
+  if(window.__simW==null) window.__simW=0;
+  var lastCatches=(window.P&&P.catches)||0;
+  var total=15*60, elapsed=0;
+  function fmt(s){ var m=Math.floor(s/60), ss=s%60; return m+':'+(ss<10?'0':'')+ss; }
+  function kg(v){ return v.toFixed(2).replace('.',',')+' кг'; }
+  function render(){
+    var rows=[{nm:meNick,me:true,w:window.__simW}].concat(comps);
+    rows.sort(function(a,b){return b.w-a.w;});
+    rows=rows.slice(0,3);
+    document.getElementById('simLB').innerHTML=rows.map(function(r,i){ return '<div class="row '+(r.me?'me':'')+'"><div class="rk">'+(i+1)+'</div><div class="nm">'+r.nm+'</div><div class="wt">'+kg(r.w)+'</div></div>'; }).join('');
+    document.getElementById('simCur').textContent=kg(window.__simW);
+  }
+  render();
+  setInterval(function(){
+    var hud=document.getElementById('hud');
+    var playing=hud && getComputedStyle(hud).display!=='none';
+    document.getElementById('simTourney').style.display=playing?'block':'none';
+    document.getElementById('simDial').style.display=playing?'flex':'none';
+    elapsed=(elapsed+1)%total; var rem=total-elapsed;
+    document.getElementById('simClk').textContent='⏱ '+fmt(rem);
+    var c=(window.P&&P.catches)||0;
+    if(c>lastCatches){ var add=(0.4+Math.random()*2.8)*(c-lastCatches); window.__simW+=add; lastCatches=c; comps.forEach(function(x){ x.w+=Math.random()*0.5; }); }
+    render();
+  },1000);
+  var lastStatus='';
+  setInterval(function(){
+    var st=(document.getElementById('status')||{}).textContent||'';
+    if(st!==lastStatus){ lastStatus=st;
+      if(st.indexOf('акинут')>=0){ var dist=Math.round(22+Math.random()*40); var d1=(1.5+Math.random()*3); var d2=(d1+1+Math.random()*3);
+        document.getElementById('simDist').textContent=dist;
+        document.getElementById('simDepth').textContent=d1.toFixed(1);
+        document.getElementById('simDepth2').innerHTML=' / '+d2.toFixed(1)+' м'; }
+    }
+    var reel=st.indexOf('Вимотуй')>=0;
+    var arc=document.getElementById('simArc'); if(arc){ arc.setAttribute('stroke-dashoffset', reel?(60+Math.random()*40):200); }
+  },400);
+}
 function stepDayNight(){
   try{
     __dayT += 0.25/DAY_SECONDS; if(__dayT>=1) __dayT-=1;
