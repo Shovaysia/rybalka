@@ -444,7 +444,7 @@
     statusEl.textContent="Вудка закинута. Чекаємо поклівку…";
     setBend(0.10); sfx.cast();
     const bait=baitById(P.baitId), rod=rodById(P.rodId);
-    const wait = Math.max(700, 1500 + Math.random()*3600 + rod.wait + bait.wait);
+    let wait = Math.max(700, 1500 + Math.random()*3600 + rod.wait + bait.wait); if(P.stink>0) wait = Math.max(500, wait*0.45);
     biteTimer=setTimeout(startBite, wait);
   }
 
@@ -672,10 +672,16 @@ function initExtras(){
     if(hud && !document.getElementById("clock")){ var c=document.createElement("div"); c.className="stat"; c.id="clock"; c.innerHTML="🌅 <b id='clockT'>06:00</b>"; var shop=document.getElementById("shopBtn"); hud.insertBefore(c, shop||null); }
     if(hud && !document.getElementById("antiStat")){ var a=document.createElement("div"); a.className="stat"; a.id="antiStat"; a.innerHTML="🧪 <b id='antiCnt'>"+(P.antidote||0)+"</b>"; var shop2=document.getElementById("shopBtn"); hud.insertBefore(a, shop2||null); }
     applyRodStyle();
-    initWaves3D(); clearInterval(window.__dn); window.__dn=setInterval(stepDayNight,250); stepDayNight();
+    initWaves3D(); clearInterval(window.__dn); window.__dn=setInterval(stepDayNight,250); stepDayNight(); try{ if(typeof P!=="undefined"&&P&&P.stink>0&&window._stinkOn) window._stinkOn(); }catch(e){}
   }catch(e){}
 }
 function initWaves3D(){ try{ var sea=document.querySelector(".sea"); if(!sea||document.getElementById("waveCanvas")) return; var cv=document.createElement("canvas"); cv.id="waveCanvas"; sea.insertBefore(cv, sea.firstChild); var ctx=cv.getContext("2d"); function rs(){ var r=sea.getBoundingClientRect(); cv.width=Math.max(2,Math.floor(r.width)); cv.height=Math.max(2,Math.floor(r.height)); } rs(); window.addEventListener("resize", rs, {passive:true}); var st=null; function frame(ts){ if(st==null) st=ts; var tm=(ts-st)/1000; var W=cv.width,H=cv.height; ctx.clearRect(0,0,W,H); var ROWS=44, step=Math.max(6,Math.floor(W/80)); for(var i=0;i<ROWS;i++){ var t0=i/ROWS, y0=Math.pow(t0,1.8)*H, amp=1.5+t0*t0*24; var cr=Math.round(10+36*t0), cg=Math.round(32+66*t0), cb=Math.round(52+78*t0); var xs=[],ys=[]; for(var x=-step;x<=W+step;x+=step){ var h=Math.sin(x*(0.012+t0*0.006)+i*0.55-tm*(0.7+t0*1.7))*amp + Math.sin(x*0.03+i*0.9-tm*2.3)*amp*0.34; xs.push(x); ys.push(y0-h); } ctx.beginPath(); ctx.moveTo(xs[0],ys[0]); for(var k=1;k<xs.length;k++) ctx.lineTo(xs[k],ys[k]); ctx.lineTo(W+step,H); ctx.lineTo(-step,H); ctx.closePath(); ctx.fillStyle="rgb("+cr+","+cg+","+cb+")"; ctx.fill(); ctx.beginPath(); ctx.moveTo(xs[0],ys[0]); for(var k2=1;k2<xs.length;k2++) ctx.lineTo(xs[k2],ys[k2]); ctx.strokeStyle="rgba("+Math.min(255,cr+70)+","+Math.min(255,cg+80)+","+Math.min(255,cb+80)+",0.42)"; ctx.lineWidth=1.1; ctx.stroke(); } requestAnimationFrame(frame); } requestAnimationFrame(frame); }catch(e){} }
+(function(){ var s=document.createElement('style'); s.textContent='#flies{position:fixed;inset:0;pointer-events:none;z-index:6}.fly{position:absolute;top:0;left:0;font-size:19px;line-height:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.4));opacity:.92;will-change:transform}#stinkBadge{position:fixed;left:50%;bottom:22%;transform:translateX(-50%);z-index:6;font-size:26px;pointer-events:none;animation:stinkWob 2.2s ease-in-out infinite;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4))}@keyframes stinkWob{0%,100%{transform:translateX(-50%) translateY(0) rotate(-4deg);opacity:.85}50%{transform:translateX(-50%) translateY(-8px) rotate(4deg);opacity:1}}'; document.head.appendChild(s); })();
+var _flyRAF=null;
+function _startFlyAnim(){ var fc=document.getElementById('flies'); if(!fc) return; var flies=[].slice.call(fc.children); var W=window.innerWidth,H=window.innerHeight; var cx=W*0.5, cy=H*0.60; var st=flies.map(function(){ return {x:cx+(Math.random()-0.5)*220,y:cy+(Math.random()-0.5)*170,a:Math.random()*6.28,sp:0.6+Math.random()*1.3}; }); var t=0; function frame(){ t+=0.016; for(var i=0;i<flies.length;i++){ var s=st[i]; s.a+=(Math.random()-0.5)*0.9; s.x+=Math.cos(s.a)*2.4*s.sp+Math.sin(t*2+i)*0.7; s.y+=Math.sin(s.a)*2.4*s.sp+Math.cos(t*1.7+i)*0.7; var dx=s.x-cx,dy=s.y-cy,d=Math.sqrt(dx*dx+dy*dy); if(d>170){ s.x-=dx*0.03; s.y-=dy*0.03; } flies[i].style.transform='translate('+s.x+'px,'+s.y+'px)'; } _flyRAF=requestAnimationFrame(frame); } if(_flyRAF) cancelAnimationFrame(_flyRAF); frame(); }
+function _stopFlyAnim(){ if(_flyRAF){ cancelAnimationFrame(_flyRAF); _flyRAF=null; } }
+window._stinkOn=function(){ try{ var scn=document.getElementById('scene')||document.body; if(!document.getElementById('flies')){ var fc=document.createElement('div'); fc.id='flies'; for(var i=0;i<9;i++){ var fl=document.createElement('div'); fl.className='fly'; fl.textContent='🪰'; fc.appendChild(fl); } scn.appendChild(fc); } if(!document.getElementById('stinkBadge')){ var b=document.createElement('div'); b.id='stinkBadge'; b.textContent='🤢💨'; scn.appendChild(b); } _startFlyAnim(); }catch(e){} };
+window._stinkOff=function(){ try{ _stopFlyAnim(); var fc=document.getElementById('flies'); if(fc) fc.remove(); var b=document.getElementById('stinkBadge'); if(b) b.remove(); }catch(e){} };
 function stepDayNight(){
   try{
     __dayT += 0.25/DAY_SECONDS; if(__dayT>=1) __dayT-=1;
@@ -733,7 +739,7 @@ function startFight(){
     clearInterval(fightTimer); fight.style.display="none";
     const f=current, bait=baitById(P.baitId);
     const reward = Math.round(f.p * bait.coin);
-    P.catches++; var isSub=(P.catches%10===0); if(f.antidote){ P.antidote=(P.antidote||0)+1; } if(isSub){ P.paidCreator=(P.paidCreator||0)+reward; } else { P.coins += reward; } if(f.p>P.best) P.best=f.p;
+    P.catches++; if(P.stink>0){ P.stink--; if(P.stink<=0 && window._stinkOff){ window._stinkOff(); } } var isSub=(P.catches%10===0); if(f.antidote){ P.antidote=(P.antidote||0)+1; } if(isSub){ P.paidCreator=(P.paidCreator||0)+reward; } else { P.coins += reward; } if(f.p>P.best) P.best=f.p;
 
     // одразу глушимо кнопку, щоб зайві тапи не проскочили улов
     state="landed"; btn.disabled=true; btn.className="btn"; setBend(0.10);
@@ -745,7 +751,7 @@ function startFight(){
 
     const isTCK = (P.catches===3 || P.catches===33 || P.catches===66);
     const isAd  = (P.catches%10===0);
-    if(isTCK){ statusEl.textContent="Спіймав "+f.n+"! Ой-ой… хтось під'їхав 👀"; setTimeout(showTCK,1300); }
+    if(isTCK){ statusEl.textContent="Спіймав "+f.n+"! Ой-ой… хтось під'їхав 👀"; statusEl.textContent="Фу! Ти впав у твань і засмердівся 🤢 — злетілись мухи!"; P.stink=3; persist(); if(window._stinkOn) window._stinkOn(); setTimeout(()=>{ if(state!=="landed")return; state="idle"; btn.disabled=false; btn.textContent="Закинути ще"; statusEl.textContent="Смердить — зате риба аж пре! 🎣"; }, LAND_LOCK); }
     else if(isSub){ statusEl.textContent="Спіймав "+f.n+"! Час абонплати… 💳"; setTimeout(function(){ showSubAd(reward); },1300); }
     else {
       statusEl.textContent="Спіймав: "+f.n+"!";
@@ -871,7 +877,7 @@ function startFight(){
   if(P && P.nick){
     // добиваємо нові поля для старих збережень
     P.ownedRods = P.ownedRods || ["bamboo"]; P.baits = P.baits || {};
-    if(!P.rodId) P.rodId="bamboo"; if(!P.baitId) P.baitId="worm"; if(P.debt==null) P.debt=0;
+    if(!P.rodId) P.rodId="bamboo"; if(!P.baitId) P.baitId="worm"; if(P.debt==null) P.debt=0; if(P.stink==null) P.stink=0;
     $("nickInput").value=P.nick; $("resetProfile").style.display="block";
     $("loginNote").textContent="Ласкаво просимо назад, "+P.nick+"! Прогрес збережено.";
     // показуємо кнопку як "Продовжити"
