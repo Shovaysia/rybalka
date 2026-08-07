@@ -1111,7 +1111,7 @@ import * as THREE from 'three';
 import { Water } from 'three/addons/objects/Water.js';
 import { Sky } from 'three/addons/objects/Sky.js';
 try{
-  var st=document.createElement('style'); st.textContent='.sea{display:none!important} .sky,.sun,.cloud,#stars,#moon,#nightVeil{z-index:1}'; document.head.appendChild(st);
+  var st=document.createElement('style'); st.textContent='.sea,.sky,.sun,.cloud,#stars,#moon,#nightVeil{display:none!important}'; document.head.appendChild(st);
   function mkNormals(size){ size=size||256; function hash(ix,iy,per){ ix=((ix%per)+per)%per; iy=((iy%per)+per)%per; var n=(ix*374761393+iy*668265263)|0; n=((n^(n>>13))*1274126177)|0; n=n^(n>>16); return ((n>>>0)%100000)/100000; } function vn(x,y,per){ var ix=Math.floor(x),iy=Math.floor(y),fx=x-ix,fy=y-iy; var u=fx*fx*(3-2*fx),v=fy*fy*(3-2*fy); var a=hash(ix,iy,per),b=hash(ix+1,iy,per),c2=hash(ix,iy+1,per),d=hash(ix+1,iy+1,per); return a*(1-u)*(1-v)+b*u*(1-v)+c2*(1-u)*v+d*u*v; } function fbm(x,y){ var s=0,amp=0.5,base=6; for(var o=0;o<5;o++){ var per=base*(1<<o); s+=amp*vn(x*per,y*per,per); amp*=0.5; } return s; } function warped(x,y){ var wx=fbm(x+0.03,y+0.11), wy=fbm(x+0.71,y+0.29); return fbm(x+0.18*wx, y+0.18*wy); } var c=document.createElement('canvas'); c.width=c.height=size; var ctx=c.getContext('2d'); var im=ctx.createImageData(size,size); var e=1/size, amp=size*0.016; for(var y=0;y<size;y++){ for(var x=0;x<size;x++){ var X=x/size,Y=y/size; var hl=warped((X-e+1)%1,Y),hr=warped((X+e)%1,Y),hd=warped(X,(Y-e+1)%1),hu=warped(X,(Y+e)%1); var nx=(hl-hr)*amp, ny=(hd-hu)*amp, nz=1, l=Math.sqrt(nx*nx+ny*ny+nz*nz); nx/=l;ny/=l;nz/=l; var i=(y*size+x)*4; im.data[i]=Math.floor((nx*0.5+0.5)*255); im.data[i+1]=Math.floor((ny*0.5+0.5)*255); im.data[i+2]=Math.floor((nz*0.5+0.5)*255); im.data[i+3]=255; } } ctx.putImageData(im,0,0); var t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; return t; }
   var scene=new THREE.Scene();
   var camera=new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 1, 30000);
@@ -1125,9 +1125,19 @@ try{
   water.rotation.x=-Math.PI/2; scene.add(water); water.material.uniforms['size'].value=7.0; (function(){ var m=water.material; var fs=m.fragmentShader; var A='float reflectance = rf0 + ( 1.0 - rf0 ) * pow( ( 1.0 - theta ), 5.0 );'; if(fs.indexOf(A)>=0){ fs=fs.replace(A, A+' reflectance = min( reflectance, 0.5 );'); } fs=fs.split('reflectionSample * 0.9').join('mix( reflectionSample, waterColor, 0.55 ) * 0.9'); m.fragmentShader=fs; m.needsUpdate=true; })();
   var sky=new Sky(); sky.scale.setScalar(20000); scene.add(sky);
   var sun=new THREE.Vector3(); var U=sky.material.uniforms;
-  U['turbidity'].value=0.8; U['rayleigh'].value=3; U['mieCoefficient'].value=0.003; U['mieDirectionalG'].value=0.85;
+  U['turbidity'].value=2.4; U['rayleigh'].value=2.6; U['mieCoefficient'].value=0.004; U['mieDirectionalG'].value=0.85;
   function setSun(elev,azi){ var phi=THREE.MathUtils.degToRad(90-elev), th=THREE.MathUtils.degToRad(azi); sun.setFromSphericalCoords(1,phi,th); U['sunPosition'].value.copy(sun); water.material.uniforms['sunDirection'].value.copy(sun).normalize(); }
   setSun(45,160);
+  var hemi=new THREE.HemisphereLight(0xbfd3e6, 0x2c3a26, 1.1); scene.add(hemi);
+  var dir=new THREE.DirectionalLight(0xfff2df, 1.4); dir.position.set(-60,80,-40); scene.add(dir);
+  scene.fog=new THREE.Fog(0xbccadd, 140, 440);
+  var forest=new THREE.Group();
+  var land=new THREE.Mesh(new THREE.BoxGeometry(900,10,26), new THREE.MeshStandardMaterial({color:0x2b3420, roughness:1})); land.position.set(0,-4,-162); land.scale.set(1,0.55,1); forest.add(land);
+  for(var h=0;h<7;h++){ var hill=new THREE.Mesh(new THREE.SphereGeometry(40+Math.random()*40,16,10), new THREE.MeshBasicMaterial({color:0x5b6f52})); hill.scale.set(1.6,0.5,1); hill.position.set(-260+h*90+Math.random()*40,-6,-230-Math.random()*40); forest.add(hill); }
+  var coneG=new THREE.ConeGeometry(3.2,12,7), trunkG=new THREE.CylinderGeometry(0.5,0.7,4,5), trunkM=new THREE.MeshStandardMaterial({color:0x3a2a1c, roughness:1});
+  for(var i=0;i<120;i++){ var x=-220+Math.random()*440, z=-158-Math.random()*16, s=0.7+Math.random()*1.1; var col=new THREE.Color().setHSL(0.28+Math.random()*0.06,0.4+Math.random()*0.2,0.16+Math.random()*0.1); var trunk=new THREE.Mesh(trunkG,trunkM); trunk.position.set(x,2*s,z); trunk.scale.setScalar(s); var cone=new THREE.Mesh(coneG,new THREE.MeshStandardMaterial({color:col,roughness:1})); cone.position.set(x,8*s,z); cone.scale.setScalar(s); forest.add(trunk); forest.add(cone); }
+  scene.add(forest);
+
   window.__glDayNight=function(hour){ var day=(hour>=6&&hour<=18); var frac=(hour-6)/12; var e= day ? (35+Math.sin(Math.max(0,Math.min(1,frac))*Math.PI)*20) : -6; var azi=140+(hour/24)*80; setSun(e,azi); renderer.toneMappingExposure= day ? (0.34+Math.max(0,e)/60*0.22) : 0.14; };
   window.__gl={scene:scene,camera:camera,water:water,sky:sky,renderer:renderer,U:U,setSun:setSun};
   window.__glCam=function(cy,ty,cz,tz){ camera.position.set(0,cy,cz); camera.lookAt(0,ty,tz); };
